@@ -1,13 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const CTA = () => {
+  const navigate = useNavigate();
   const benefits = [
     "14-day free trial",
     "No setup fees",
     "24/7 support",
     "Cancel anytime"
   ];
+
+  const handleStartTrial = () => {
+    navigate("/register");
+  };
+
+  const handleScheduleDemo = () => {
+    toast.info("Demo scheduling feature coming soon! Sign up to be notified.");
+  };
 
   return (
     <section className="py-24 bg-gradient-hero relative overflow-hidden">
@@ -38,11 +49,20 @@ const CTA = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="xl" className="group">
+            <Button 
+              variant="hero" 
+              size="xl" 
+              className="group"
+              onClick={handleStartTrial}
+            >
               Start Free Trial Now
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="premium" size="xl">
+            <Button 
+              variant="premium" 
+              size="xl"
+              onClick={handleScheduleDemo}
+            >
               Schedule Demo
             </Button>
           </div>

@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Shield, Zap, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import heroImage from "@/assets/hero-dashboard.jpg";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleStartTrial = () => {
+    navigate("/register");
+  };
+
+  const handleWatchDemo = () => {
+    toast.info("Demo feature coming soon! Sign up to be notified.");
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-hero overflow-hidden">
       {/* Background Pattern */}
@@ -33,11 +45,21 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-              <Button variant="hero" size="xl" className="group">
+              <Button 
+                variant="hero" 
+                size="xl" 
+                className="group"
+                onClick={handleStartTrial}
+              >
                 Start Free Trial
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="premium" size="xl" className="group">
+              <Button 
+                variant="premium" 
+                size="xl" 
+                className="group"
+                onClick={handleWatchDemo}
+              >
                 <Play className="h-5 w-5 mr-2" />
                 Watch Demo
               </Button>
