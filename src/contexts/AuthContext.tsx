@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 
 interface AuthContextType {
   user: User | null
@@ -28,23 +28,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!supabase) {
-      console.error('Supabase client not initialized')
-      setLoading(false)
-      return
-    }
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Listen for auth changes first
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -54,10 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    if (!supabase) {
-      return { error: new Error('Supabase not configured') }
-    }
-
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -66,14 +56,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const signUp = async (email: string, password: string, fullName: string, companyName: string) => {
-    if (!supabase) {
-      return { error: new Error('Supabase not configured') }
-    }
+    const redirectUrl = `${window.location.origin}/dashboard`
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
           company_name: companyName,
@@ -81,29 +70,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
     })
 
-    if (!error && data.user) {
-      // Insert seller profile
-      const { error: profileError } = await supabase
-        .from('sellers')
-        .insert({
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          company_name: companyName,
-        })
-
-      if (profileError) {
-        console.error('Error creating seller profile:', profileError)
-      }
-    }
-
     return { error }
   }
 
   const signOut = async () => {
-    if (!supabase) {
-      return
-    }
     await supabase.auth.signOut()
   }
 

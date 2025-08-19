@@ -17,6 +17,12 @@ import Themes from "./pages/dashboard/Themes";
 import Analytics from "./pages/dashboard/Analytics";
 import Marketing from "./pages/dashboard/Marketing";
 import WhatsApp from "./pages/dashboard/WhatsApp";
+import Payments from "./pages/dashboard/Payments";
+import Reports from "./pages/dashboard/Reports"; 
+import Delivery from "./pages/dashboard/Delivery";
+import Returns from "./pages/dashboard/Returns";
+import Claims from "./pages/dashboard/Claims";
+import Coupons from "./pages/dashboard/Coupons";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,7 +50,13 @@ const App = () => (
               <Route path="themes" element={<Themes />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="marketing" element={<Marketing />} />
-              <Route path="whatsapp" element={<WhatsApp />} />
+            <Route path="whatsapp" element={<WhatsApp />} />
+            <Route path="payments" element={<Payments />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="delivery" element={<Delivery />} />
+            <Route path="returns" element={<Returns />} />
+            <Route path="claims" element={<Claims />} />
+            <Route path="coupons" element={<Coupons />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
