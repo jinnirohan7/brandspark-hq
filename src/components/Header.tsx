@@ -32,7 +32,7 @@ const Header = () => {
   };
 
   const handleStartTrial = () => {
-    navigate("/register");
+    navigate("/start-free-trial");
   };
 
   const handleDashboard = () => {

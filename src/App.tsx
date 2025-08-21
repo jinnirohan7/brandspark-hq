@@ -9,6 +9,8 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import StartFreeTrial from "./pages/StartFreeTrial";
+import ScheduleDemo from "./pages/ScheduleDemo";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Orders from "./pages/dashboard/Orders";
 import Inventory from "./pages/dashboard/Inventory";
@@ -44,6 +46,8 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/start-free-trial" element={<StartFreeTrial />} />
+            <Route path="/schedule-demo" element={<ScheduleDemo />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardLayout />

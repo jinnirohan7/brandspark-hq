@@ -13,11 +13,11 @@ const CTA = () => {
   ];
 
   const handleStartTrial = () => {
-    navigate("/register");
+    navigate("/start-free-trial");
   };
 
   const handleScheduleDemo = () => {
-    toast.info("Demo scheduling feature coming soon! Sign up to be notified.");
+    navigate("/schedule-demo");
   };
 
   return (

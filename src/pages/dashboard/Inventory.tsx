@@ -6,12 +6,18 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Search, Plus, AlertTriangle, Package, TrendingDown, TrendingUp } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Search, Plus, AlertTriangle, Package, TrendingDown, TrendingUp, Edit, Trash2, Eye, Undo2, FileDown } from 'lucide-react'
+import ProductForm from '@/components/ProductForm'
+import CSVImport from '@/components/CSVImport'
+import { toast } from 'sonner'
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('')
-
-  const products = [
+  const [showProductForm, setShowProductForm] = useState(false)
+  const [showCSVImport, setShowCSVImport] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [products, setProducts] = useState([
     {
       id: 'PROD-001',
       name: 'Wireless Headphones',
@@ -60,7 +66,7 @@ const Inventory = () => {
       price: '₹299',
       status: 'In Stock',
     },
-  ]
+  ])
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -70,6 +76,47 @@ const Inventory = () => {
     } as const
 
     return <Badge variant={variants[status as keyof typeof variants]}>{status}</Badge>
+  }
+
+  const handleAddProduct = (productData: any) => {
+    const newProduct = {
+      ...productData,
+      id: `PROD-${Date.now()}`,
+      reserved: 0,
+      available: productData.stock,
+      price: `₹${productData.price.toLocaleString()}`,
+      status: productData.stock > productData.lowStockThreshold ? "In Stock" : 
+              productData.stock > 0 ? "Low Stock" : "Out of Stock"
+    }
+    setProducts(prev => [...prev, newProduct])
+    setShowProductForm(false)
+    toast.success("Product added successfully")
+  }
+
+  const handleEditProduct = (productData: any) => {
+    const updatedProduct = {
+      ...productData,
+      reserved: editingProduct.reserved,
+      available: productData.stock - editingProduct.reserved,
+      price: `₹${productData.price.toLocaleString()}`,
+      status: productData.stock > productData.lowStockThreshold ? "In Stock" : 
+              productData.stock > 0 ? "Low Stock" : "Out of Stock"
+    }
+    setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p))
+    setEditingProduct(null)
+    setShowProductForm(false)
+    toast.success("Product updated successfully")
+  }
+
+  const handleDeleteProduct = (productId: string) => {
+    setProducts(prev => prev.filter(p => p.id !== productId))
+    toast.success("Product deleted successfully")
+  }
+
+  const handleImportProducts = (importedProducts: any[]) => {
+    setProducts(prev => [...prev, ...importedProducts])
+    setShowCSVImport(false)
+    toast.success(`${importedProducts.length} products imported successfully`)
   }
 
   const lowStockItems = products.filter(p => p.stock <= p.lowStockThreshold && p.stock > 0)
@@ -85,8 +132,11 @@ const Inventory = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Inventory Management</h1>
         <div className="flex gap-2">
-          <Button variant="outline">Import CSV</Button>
-          <Button>
+          <Button variant="outline" onClick={() => setShowCSVImport(true)}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Import CSV
+          </Button>
+          <Button onClick={() => setShowProductForm(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -221,9 +271,30 @@ const Inventory = () => {
                       <TableCell>{product.price}</TableCell>
                       <TableCell>{getStatusBadge(product.status)}</TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">Restock</Button>
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setEditingProduct(product)
+                              setShowProductForm(true)
+                            }}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDeleteProduct(product.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Undo2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -298,6 +369,30 @@ const Inventory = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Product Form Dialog */}
+      {showProductForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <ProductForm
+              product={editingProduct}
+              onSubmit={editingProduct ? handleEditProduct : handleAddProduct}
+              onCancel={() => {
+                setShowProductForm(false)
+                setEditingProduct(null)
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* CSV Import Dialog */}
+      {showCSVImport && (
+        <CSVImport
+          onImport={handleImportProducts}
+          onClose={() => setShowCSVImport(false)}
+        />
+      )}
     </div>
   )
 }
