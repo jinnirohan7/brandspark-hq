@@ -25,6 +25,7 @@ import Delivery from "./pages/dashboard/Delivery";
 import Returns from "./pages/dashboard/Returns";
 import Claims from "./pages/dashboard/Claims";
 import Coupons from "./pages/dashboard/Coupons";
+import Profile from "./pages/dashboard/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="returns" element={<Returns />} />
             <Route path="claims" element={<Claims />} />
             <Route path="coupons" element={<Coupons />} />
+            <Route path="profile" element={<Profile />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

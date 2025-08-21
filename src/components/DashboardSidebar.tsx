@@ -25,6 +25,7 @@ import {
   Star,
   MessageCircle,
   Home,
+  User,
 } from 'lucide-react'
 
 const menuItems = [
@@ -75,6 +76,12 @@ const menuItems = [
       { title: 'Support', url: '/dashboard/support', icon: Headphones },
       { title: 'Reviews', url: '/dashboard/reviews', icon: Star },
       { title: 'Documents', url: '/dashboard/docs', icon: FileCheck },
+    ],
+  },
+  {
+    title: 'Account',
+    items: [
+      { title: 'Profile', url: '/dashboard/profile', icon: User },
     ],
   },
 ]
