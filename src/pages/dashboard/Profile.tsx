@@ -75,38 +75,38 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Seller Account Information</h1>
-          <p className="text-muted-foreground mt-1">Manage your seller profile and account settings</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Seller Account Information</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your seller profile and account settings</p>
         </div>
-        <Button onClick={handleSave} disabled={loading}>
+        <Button onClick={handleSave} disabled={loading} className="self-start sm:self-center">
           {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="profile" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Profile
+        <div className="lg:col-span-3 space-y-4 sm:space-y-6 min-w-0">
+          <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+              <TabsTrigger value="profile" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+                <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="payment" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Payment
+              <TabsTrigger value="payment" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+                <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Payment</span>
               </TabsTrigger>
-              <TabsTrigger value="business" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Business
+              <TabsTrigger value="business" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+                <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Business</span>
               </TabsTrigger>
-              <TabsTrigger value="shipping" className="flex items-center gap-2">
-                <Truck className="h-4 w-4" />
-                Shipping
+              <TabsTrigger value="shipping" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 sm:p-3">
+                <Truck className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Shipping</span>
               </TabsTrigger>
             </TabsList>
 
@@ -196,50 +196,182 @@ const Profile = () => {
 
             {/* Payment Information */}
             <TabsContent value="payment">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Payment Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-sm font-medium">Deposit Methods</Label>
-                        <div className="space-y-2 mt-1">
-                          {formData.payment.depositMethods.map((method, index) => (
-                            <div key={index} className="text-sm text-muted-foreground">
-                              {method}
-                            </div>
-                          ))}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5" />
+                      Payment Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium">Deposit Methods</Label>
+                          <div className="space-y-2 mt-1">
+                            {formData.payment.depositMethods.map((method, index) => (
+                              <div key={index} className="text-sm text-muted-foreground">
+                                {method}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <Label className="text-sm font-medium">Charge Methods</Label>
+                          <div className="space-y-2 mt-1">
+                            {formData.payment.chargeMethods.map((method, index) => (
+                              <div key={index} className="text-sm text-muted-foreground">
+                                {method}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="text-sm font-medium">Charge Methods</Label>
-                        <div className="space-y-2 mt-1">
-                          {formData.payment.chargeMethods.map((method, index) => (
-                            <div key={index} className="text-sm text-muted-foreground">
-                              {method}
+                    <div>
+                      <Label className="text-sm font-medium">Charge Methods for Advertising</Label>
+                      <Input
+                        value={formData.payment.advertisingCharges}
+                        onChange={(e) => handleInputChange('payment', 'advertisingCharges', e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* KYC Documents Section */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      KYC Documents & Verification
+                    </CardTitle>
+                    <CardDescription>
+                      Upload required documents for account verification and compliance
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* GST Certificate */}
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <Label className="text-sm font-medium">GST Certificate</Label>
+                            <Badge variant="outline" className="text-orange-600">Pending</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <Input
+                              placeholder="GST Number (e.g., 22AAAAA0000A1Z5)"
+                              className="text-sm"
+                            />
+                            <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
+                              <p className="text-sm text-muted-foreground">Click to upload GST certificate</p>
+                              <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG (Max 5MB)</p>
                             </div>
-                          ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* PAN Card */}
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <Label className="text-sm font-medium">PAN Card</Label>
+                            <Badge variant="outline" className="text-orange-600">Pending</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <Input
+                              placeholder="PAN Number (e.g., ABCDE1234F)"
+                              className="text-sm"
+                            />
+                            <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
+                              <p className="text-sm text-muted-foreground">Click to upload PAN card</p>
+                              <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bank Account Details */}
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <Label className="text-sm font-medium">Bank Account Details</Label>
+                            <Badge variant="outline" className="text-orange-600">Pending</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <Input
+                              placeholder="Account Number"
+                              className="text-sm"
+                            />
+                            <Input
+                              placeholder="IFSC Code"
+                              className="text-sm"
+                            />
+                            <Input
+                              placeholder="Bank Name"
+                              className="text-sm"
+                            />
+                            <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
+                              <p className="text-sm text-muted-foreground">Upload bank statement/passbook</p>
+                              <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Aadhar Card */}
+                      <div className="space-y-4">
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-3">
+                            <Label className="text-sm font-medium">Aadhar Card</Label>
+                            <Badge variant="outline" className="text-orange-600">Pending</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <Input
+                              placeholder="Aadhar Number (12 digits)"
+                              className="text-sm"
+                            />
+                            <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
+                              <p className="text-sm text-muted-foreground">Upload Aadhar card (front & back)</p>
+                              <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Charge Methods for Advertising</Label>
-                    <Input
-                      value={formData.payment.advertisingCharges}
-                      onChange={(e) => handleInputChange('payment', 'advertisingCharges', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+
+                    {/* Additional Documents */}
+                    <div className="border-t pt-6">
+                      <Label className="text-sm font-medium mb-4 block">Additional Business Documents (Optional)</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 border rounded-lg">
+                          <Label className="text-sm font-medium block mb-2">Trade License</Label>
+                          <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
+                            <p className="text-sm text-muted-foreground">Upload trade license</p>
+                            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                          </div>
+                        </div>
+                        <div className="p-4 border rounded-lg">
+                          <Label className="text-sm font-medium block mb-2">FSSAI License (Food items)</Label>
+                          <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center">
+                            <p className="text-sm text-muted-foreground">Upload FSSAI license</p>
+                            <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG (Max 5MB)</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                      <Button className="flex-1">Submit for Verification</Button>
+                      <Button variant="outline" className="flex-1">Save as Draft</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Business Information */}
@@ -375,7 +507,7 @@ const Profile = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6 min-w-0">
           {/* FAQ Section */}
           <Card>
             <CardHeader>

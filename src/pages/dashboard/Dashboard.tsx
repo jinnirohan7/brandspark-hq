@@ -225,82 +225,85 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6 p-6 bg-background min-h-screen">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 bg-background min-h-screen">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-          <p className="text-muted-foreground">Track your business performance and insights</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Track your business performance and insights</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm">
-            <HelpCircle className="mr-2 h-4 w-4" />
-            Support
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+            <HelpCircle className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Support</span>
           </Button>
-          <Button variant="outline" size="sm">
-            Notices
+          <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+            <span className="hidden xs:inline">Notices</span>
+            <span className="xs:hidden">📢</span>
           </Button>
-          <Button variant="outline" size="sm" className="rounded-full h-10 w-10 p-0">
+          <Button variant="outline" size="sm" className="rounded-full h-8 w-8 sm:h-10 sm:w-10 p-0 text-xs sm:text-sm">
             LY
           </Button>
         </div>
       </div>
 
       {/* Quick Navigation */}
-      <div className="grid grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
+      <div className="grid grid-cols-2 xs:grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4 mb-6 sm:mb-8">
         {quickActions.map((action) => (
           <Button
             key={action.title}
             variant="outline"
-            className="h-16 flex flex-col items-center justify-center gap-2 hover:bg-accent"
+            className="h-12 sm:h-16 flex flex-col items-center justify-center gap-1 sm:gap-2 hover:bg-accent p-2"
             onClick={() => navigate(action.path)}
           >
-            <div className={`p-2 rounded-lg ${action.color} text-white`}>
-              <action.icon className="h-4 w-4" />
+            <div className={`p-1 sm:p-2 rounded-lg ${action.color} text-white`}>
+              <action.icon className="h-3 w-3 sm:h-4 sm:w-4" />
             </div>
-            <span className="text-xs font-medium">{action.title}</span>
+            <span className="text-xs font-medium truncate">{action.title}</span>
           </Button>
         ))}
       </div>
 
       {/* Analytics Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 xl:grid-cols-2">
         {/* Order & Revenue Trend */}
-        <Card className="bg-card border border-border">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Order & Revenue Trend</CardTitle>
-              <div className="flex items-center gap-4 mt-2">
+        <Card className="bg-card border border-border min-w-0">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4">
+            <div className="min-w-0">
+              <CardTitle className="text-base sm:text-lg truncate">Order & Revenue Trend</CardTitle>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-sm text-muted-foreground">Orders</span>
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Orders</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span className="text-sm text-muted-foreground">Order Revenue</span>
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-orange-500"></div>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Order Revenue</span>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm">📊</Button>
-              <Button variant="ghost" size="sm">📋</Button>
+            <div className="flex gap-2 self-start sm:self-center">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">📊</Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">📋</Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+          <CardContent className="pt-0">
+            <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={orderRevenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
                     dataKey="month" 
                     stroke="hsl(var(--muted-foreground))" 
-                    fontSize={12}
+                    fontSize={10}
+                    tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis 
                     stroke="hsl(var(--muted-foreground))" 
-                    fontSize={12}
+                    fontSize={10}
+                    tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -309,64 +312,66 @@ const Dashboard = () => {
                     type="monotone" 
                     dataKey="orders" 
                     stroke="#22c55e" 
-                    strokeWidth={3}
-                    dot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="orderRevenue" 
                     stroke="#f97316" 
-                    strokeWidth={3}
-                    dot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-4">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">September</p>
-                <p className="text-lg font-bold text-green-500">₹5Cr</p>
-                <p className="text-lg font-bold">26K</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">September</p>
+                <p className="text-sm sm:text-lg font-bold text-green-500">₹5Cr</p>
+                <p className="text-sm sm:text-lg font-bold">26K</p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">October</p>
-                <p className="text-lg font-bold text-orange-500">₹4Cr</p>
-                <p className="text-lg font-bold">₹2Cr</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">October</p>
+                <p className="text-sm sm:text-lg font-bold text-orange-500">₹4Cr</p>
+                <p className="text-sm sm:text-lg font-bold">₹2Cr</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* RTO X Trend */}
-        <Card className="bg-card border border-border">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">RTO X Trend</CardTitle>
+        <Card className="bg-card border border-border min-w-0">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4">
+            <div className="min-w-0">
+              <CardTitle className="text-base sm:text-lg truncate">RTO X Trend</CardTitle>
               <div className="flex items-center gap-2 mt-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <span className="text-sm text-muted-foreground">RTO %</span>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-500"></div>
+                <span className="text-xs sm:text-sm text-muted-foreground">RTO %</span>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm">📊</Button>
-              <Button variant="ghost" size="sm">📋</Button>
+            <div className="flex gap-2 self-start sm:self-center">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">📊</Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">📋</Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+          <CardContent className="pt-0">
+            <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={rtoData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
                     dataKey="month" 
                     stroke="hsl(var(--muted-foreground))" 
-                    fontSize={12}
+                    fontSize={10}
+                    tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis 
                     stroke="hsl(var(--muted-foreground))" 
-                    fontSize={12}
+                    fontSize={10}
+                    tick={{ fontSize: 10 }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -375,15 +380,15 @@ const Dashboard = () => {
                     type="monotone" 
                     dataKey="rto" 
                     stroke="#3b82f6" 
-                    strokeWidth={3}
-                    dot={{ r: 6 }}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
             <div className="text-center mt-4">
-              <p className="text-sm text-muted-foreground">September</p>
-              <p className="text-2xl font-bold text-blue-500">16%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">September</p>
+              <p className="text-lg sm:text-2xl font-bold text-blue-500">16%</p>
             </div>
           </CardContent>
         </Card>
@@ -391,55 +396,55 @@ const Dashboard = () => {
 
       {/* Profit Trend Table */}
       <Card className="bg-card border border-border">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Profit Trend</CardTitle>
-          <Button variant="ghost" size="sm">📊</Button>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4">
+          <CardTitle className="text-base sm:text-lg">Profit Trend</CardTitle>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 self-start sm:self-center">📊</Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="border-border">
-                  <TableHead className="text-left">Date</TableHead>
-                  <TableHead className="text-right">Total Sales</TableHead>
-                  <TableHead className="text-right">Marketing Cost</TableHead>
-                  <TableHead className="text-right">Shipping Cost</TableHead>
-                  <TableHead className="text-right">COGS</TableHead>
-                  <TableHead className="text-right">Net Profit (CM2)</TableHead>
+                  <TableHead className="text-left text-xs sm:text-sm whitespace-nowrap">Date</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Total Sales</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Marketing</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Shipping</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">COGS</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Net Profit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {profitData.map((item) => (
                   <TableRow key={item.date} className="border-border">
-                    <TableCell className="font-medium">{item.date}</TableCell>
+                    <TableCell className="font-medium text-xs sm:text-sm">{item.date}</TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.totalSales}</div>
-                        <div className="text-sm text-blue-400">{item.salesPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.totalSales}</div>
+                        <div className="text-xs text-blue-400">{item.salesPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.marketingCost}</div>
-                        <div className="text-sm text-red-400">{item.marketingPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.marketingCost}</div>
+                        <div className="text-xs text-red-400">{item.marketingPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.shippingCost}</div>
-                        <div className="text-sm text-red-400">{item.shippingPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.shippingCost}</div>
+                        <div className="text-xs text-red-400">{item.shippingPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.cogs}</div>
-                        <div className="text-sm text-red-400">{item.cogsPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.cogs}</div>
+                        <div className="text-xs text-red-400">{item.cogsPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className={`font-medium ${item.profitColor}`}>{item.netProfit}</div>
-                        <div className={`text-sm ${item.profitColor}`}>{item.profitPercent}</div>
+                        <div className={`font-medium text-xs sm:text-sm ${item.profitColor}`}>{item.netProfit}</div>
+                        <div className={`text-xs ${item.profitColor}`}>{item.profitPercent}</div>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -452,48 +457,48 @@ const Dashboard = () => {
 
       {/* Order Details Table */}
       <Card className="bg-card border border-border">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Order Details</CardTitle>
-          <Button variant="ghost" size="sm">📊</Button>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4">
+          <CardTitle className="text-base sm:text-lg">Order Details</CardTitle>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 self-start sm:self-center">📊</Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="border-border">
-                  <TableHead className="text-left">Date</TableHead>
-                  <TableHead className="text-right">Confirmed Order</TableHead>
-                  <TableHead className="text-right">Orders In-Transit</TableHead>
-                  <TableHead className="text-right">Order Delivered</TableHead>
-                  <TableHead className="text-right">Order RTOed</TableHead>
+                  <TableHead className="text-left text-xs sm:text-sm whitespace-nowrap">Date</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Confirmed</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">In-Transit</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">Delivered</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm whitespace-nowrap">RTOed</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orderDetails.map((item) => (
                   <TableRow key={item.date} className="border-border">
-                    <TableCell className="font-medium">{item.date}</TableCell>
+                    <TableCell className="font-medium text-xs sm:text-sm">{item.date}</TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.confirmed}</div>
-                        <div className="text-sm text-blue-400">{item.confirmedPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.confirmed}</div>
+                        <div className="text-xs text-blue-400">{item.confirmedPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.inTransit}</div>
-                        <div className="text-sm text-orange-400">{item.transitPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.inTransit}</div>
+                        <div className="text-xs text-orange-400">{item.transitPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.delivered}</div>
-                        <div className="text-sm text-green-400">{item.deliveredPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.delivered}</div>
+                        <div className="text-xs text-green-400">{item.deliveredPercent}</div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div>
-                        <div className="font-medium">{item.rto}</div>
-                        <div className="text-sm text-red-400">{item.rtoPercent}</div>
+                        <div className="font-medium text-xs sm:text-sm">{item.rto}</div>
+                        <div className="text-xs text-red-400">{item.rtoPercent}</div>
                       </div>
                     </TableCell>
                   </TableRow>
