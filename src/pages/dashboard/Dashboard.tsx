@@ -22,20 +22,121 @@ import {
   Filter,
   Download,
   Calendar,
-  BarChart3
+  BarChart3,
+  Settings,
+  HelpCircle,
+  FileText,
+  Megaphone,
+  MessageSquare,
+  CreditCard,
+  RotateCcw,
+  Gift
 } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts'
+import { useNavigate } from 'react-router-dom'
 
 const Dashboard = () => {
-  const stats = [
+  const navigate = useNavigate()
+
+  // Order & Revenue Trend Data
+  const orderRevenueData = [
+    { month: 'August', orders: 20000, revenue: 3500000, orderRevenue: 2540000 },
+    { month: 'September', orders: 26000, revenue: 3900000, orderRevenue: 3020000 },
+    { month: 'October', orders: 35000, revenue: 4600000, orderRevenue: 4090000 },
+  ]
+
+  // RTO Trend Data
+  const rtoData = [
+    { month: 'August', rto: 18 },
+    { month: 'September', rto: 14 },
+    { month: 'October', rto: 16 },
+  ]
+
+  // Profit Trend Data
+  const profitData = [
     {
-      title: 'Total Revenue',
-      value: '₹2,45,890',
-      change: '+15.2%',
-      changeType: 'positive' as const,
-      icon: DollarSign,
-      subValue: '₹8,196 avg/day',
+      date: 'October',
+      totalSales: '₹4,09,02,901',
+      salesPercent: '100%',
+      marketingCost: '₹1,02,58,448',
+      marketingPercent: '25%',
+      shippingCost: '₹87,32,769',
+      shippingPercent: '21%',
+      cogs: '₹1,24,05,850',
+      cogsPercent: '30%',
+      netProfit: '₹95,05,834',
+      profitPercent: '23%',
+      profitColor: 'text-green-400'
     },
+    {
+      date: 'September',
+      totalSales: '₹3,02,10,711',
+      salesPercent: '100%',
+      marketingCost: '₹84,95,252',
+      marketingPercent: '28%',
+      shippingCost: '₹64,07,692',
+      shippingPercent: '21%',
+      cogs: '₹88,66,844',
+      cogsPercent: '29%',
+      netProfit: '₹64,40,924',
+      profitPercent: '21%',
+      profitColor: 'text-green-400'
+    },
+    {
+      date: 'August',
+      totalSales: '₹2,54,82,891',
+      salesPercent: '100%',
+      marketingCost: '₹76,47,416',
+      marketingPercent: '30%',
+      shippingCost: '₹52,52,024',
+      shippingPercent: '21%',
+      cogs: '₹77,28,961',
+      cogsPercent: '30%',
+      netProfit: '₹48,54,491',
+      profitPercent: '19%',
+      profitColor: 'text-green-400'
+    },
+  ]
+
+  // Order Details Data
+  const orderDetails = [
+    {
+      date: 'October',
+      confirmed: '35,292',
+      confirmedPercent: '100%',
+      inTransit: '705',
+      transitPercent: '2%',
+      delivered: '30,350',
+      deliveredPercent: '86%',
+      rto: '4,235',
+      rtoPercent: '12%'
+    },
+    {
+      date: 'September',
+      confirmed: '26,028',
+      confirmedPercent: '100%',
+      inTransit: '0',
+      transitPercent: '0%',
+      delivered: '21,863',
+      deliveredPercent: '84%',
+      rto: '4,165',
+      rtoPercent: '16%'
+    },
+  ]
+
+  // Quick Access Navigation
+  const quickActions = [
+    { title: 'Orders', icon: ShoppingBag, path: '/dashboard/orders', color: 'bg-blue-500' },
+    { title: 'Inventory', icon: Package, path: '/dashboard/inventory', color: 'bg-green-500' },
+    { title: 'Analytics', icon: BarChart3, path: '/dashboard/analytics', color: 'bg-purple-500' },
+    { title: 'Reports', icon: FileText, path: '/dashboard/reports', color: 'bg-orange-500' },
+    { title: 'Marketing', icon: Megaphone, path: '/dashboard/marketing', color: 'bg-red-500' },
+    { title: 'Reviews', icon: Star, path: '/dashboard/reviews', color: 'bg-yellow-500' },
+    { title: 'Support', icon: HelpCircle, path: '/dashboard/support', color: 'bg-indigo-500' },
+    { title: 'Payments', icon: CreditCard, path: '/dashboard/payments', color: 'bg-teal-500' },
+  ]
+
+  const stats = [
     {
       title: 'Orders',
       value: '1,847',
@@ -124,270 +225,285 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 bg-background min-h-screen">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Seller Dashboard</h1>
-          <p className="text-muted-foreground">Track your business performance and manage operations</p>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-muted-foreground">Track your business performance and insights</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm">
-            <Calendar className="mr-2 h-4 w-4" />
-            Last 30 days
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Support
           </Button>
           <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+            Notices
           </Button>
-          <Button>
-            <BarChart3 className="mr-2 h-4 w-4" />
-            View Reports
+          <Button variant="outline" size="sm" className="rounded-full h-10 w-10 p-0">
+            LY
           </Button>
         </div>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <div className="flex items-center text-xs">
-                    <span className={`${stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'} font-medium`}>
-                      {stat.change}
-                    </span>
-                    <span className="text-muted-foreground ml-1">vs last month</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{stat.subValue}</p>
-                </div>
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <stat.icon className="h-4 w-4 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Quick Navigation */}
+      <div className="grid grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
+        {quickActions.map((action) => (
+          <Button
+            key={action.title}
+            variant="outline"
+            className="h-16 flex flex-col items-center justify-center gap-2 hover:bg-accent"
+            onClick={() => navigate(action.path)}
+          >
+            <div className={`p-2 rounded-lg ${action.color} text-white`}>
+              <action.icon className="h-4 w-4" />
+            </div>
+            <span className="text-xs font-medium">{action.title}</span>
+          </Button>
         ))}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Sales Chart */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Sales Performance</CardTitle>
-            <CardDescription>Revenue and order trends over the last 7 days</CardDescription>
+      {/* Analytics Charts Grid */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Order & Revenue Trend */}
+        <Card className="bg-card border border-border">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Order & Revenue Trend</CardTitle>
+              <div className="flex items-center gap-4 mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <span className="text-sm text-muted-foreground">Orders</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                  <span className="text-sm text-muted-foreground">Order Revenue</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm">📊</Button>
+              <Button variant="ghost" size="sm">📋</Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={salesData}>
-                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="hsl(var(--primary))" 
-                    fill="hsl(var(--primary))" 
-                    fillOpacity={0.1}
-                    strokeWidth={2}
+                <LineChart data={orderRevenueData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                </AreaChart>
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="orders" 
+                    stroke="#22c55e" 
+                    strokeWidth={3}
+                    dot={{ r: 6 }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="orderRevenue" 
+                    stroke="#f97316" 
+                    strokeWidth={3}
+                    dot={{ r: 6 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
-            </ChartContainer>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">September</p>
+                <p className="text-lg font-bold text-green-500">₹5Cr</p>
+                <p className="text-lg font-bold">26K</p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">October</p>
+                <p className="text-lg font-bold text-orange-500">₹4Cr</p>
+                <p className="text-lg font-bold">₹2Cr</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Traffic Sources */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Traffic Sources</CardTitle>
-            <CardDescription>Where your visitors come from</CardDescription>
+        {/* RTO X Trend */}
+        <Card className="bg-card border border-border">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">RTO X Trend</CardTitle>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <span className="text-sm text-muted-foreground">RTO %</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm">📊</Button>
+              <Button variant="ghost" size="sm">📋</Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px]">
+            <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={trafficSources}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    dataKey="value"
-                  >
-                    {trafficSources.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip />
-                </PieChart>
+                <LineChart data={rtoData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    stroke="hsl(var(--muted-foreground))" 
+                    fontSize={12}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="rto" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3}
+                    dot={{ r: 6 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="space-y-2 mt-4">
-              {trafficSources.map((source) => (
-                <div key={source.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: source.color }} />
-                    {source.name}
-                  </div>
-                  <span className="font-medium">{source.value}%</span>
-                </div>
-              ))}
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">September</p>
+              <p className="text-2xl font-bold text-blue-500">16%</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Detailed Tables Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Top Products */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Top Performing Products</CardTitle>
-              <CardDescription>Your best sellers this month</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm">
-              View All
-              <ArrowUpRight className="ml-1 h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
+      {/* Profit Trend Table */}
+      <Card className="bg-card border border-border">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Profit Trend</CardTitle>
+          <Button variant="ghost" size="sm">📊</Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead className="text-right">Sales</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
+                <TableRow className="border-border">
+                  <TableHead className="text-left">Date</TableHead>
+                  <TableHead className="text-right">Total Sales</TableHead>
+                  <TableHead className="text-right">Marketing Cost</TableHead>
+                  <TableHead className="text-right">Shipping Cost</TableHead>
+                  <TableHead className="text-right">COGS</TableHead>
+                  <TableHead className="text-right">Net Profit (CM2)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topProducts.map((product) => (
-                  <TableRow key={product.name}>
-                    <TableCell>
+                {profitData.map((item) => (
+                  <TableRow key={item.date} className="border-border">
+                    <TableCell className="font-medium">{item.date}</TableCell>
+                    <TableCell className="text-right">
                       <div>
-                        <p className="font-medium text-sm">{product.name}</p>
-                        <p className={`text-xs ${product.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                          {product.trend} vs last month
-                        </p>
+                        <div className="font-medium">{item.totalSales}</div>
+                        <div className="text-sm text-blue-400">{item.salesPercent}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-medium">{product.sales}</TableCell>
-                    <TableCell className="text-right font-medium">{product.revenue}</TableCell>
                     <TableCell className="text-right">
-                      <Badge variant={product.stock < 20 ? 'destructive' : 'secondary'}>
-                        {product.stock}
-                      </Badge>
+                      <div>
+                        <div className="font-medium">{item.marketingCost}</div>
+                        <div className="text-sm text-red-400">{item.marketingPercent}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className="font-medium">{item.shippingCost}</div>
+                        <div className="text-sm text-red-400">{item.shippingPercent}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className="font-medium">{item.cogs}</div>
+                        <div className="text-sm text-red-400">{item.cogsPercent}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className={`font-medium ${item.profitColor}`}>{item.netProfit}</div>
+                        <div className={`text-sm ${item.profitColor}`}>{item.profitPercent}</div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Recent Orders */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent Orders</CardTitle>
-              <CardDescription>Latest customer orders requiring attention</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm">
-              Manage Orders
-              <ArrowUpRight className="ml-1 h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{order.id}</p>
-                      <Badge 
-                        variant={
-                          order.status === 'Delivered' ? 'default' :
-                          order.status === 'Shipped' ? 'secondary' :
-                          order.status === 'Processing' ? 'outline' : 'destructive'
-                        }
-                        className="text-xs"
-                      >
-                        {order.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{order.customer}</p>
-                    <p className="text-xs text-muted-foreground">{order.items} items • {order.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold">{order.amount}</p>
-                    <Button variant="ghost" size="sm" className="h-auto p-1 text-xs">
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Order Details Table */}
+      <Card className="bg-card border border-border">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Order Details</CardTitle>
+          <Button variant="ghost" size="sm">📊</Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border">
+                  <TableHead className="text-left">Date</TableHead>
+                  <TableHead className="text-right">Confirmed Order</TableHead>
+                  <TableHead className="text-right">Orders In-Transit</TableHead>
+                  <TableHead className="text-right">Order Delivered</TableHead>
+                  <TableHead className="text-right">Order RTOed</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orderDetails.map((item) => (
+                  <TableRow key={item.date} className="border-border">
+                    <TableCell className="font-medium">{item.date}</TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className="font-medium">{item.confirmed}</div>
+                        <div className="text-sm text-blue-400">{item.confirmedPercent}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className="font-medium">{item.inTransit}</div>
+                        <div className="text-sm text-orange-400">{item.transitPercent}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className="font-medium">{item.delivered}</div>
+                        <div className="text-sm text-green-400">{item.deliveredPercent}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <div className="font-medium">{item.rto}</div>
+                        <div className="text-sm text-red-400">{item.rtoPercent}</div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Action Items */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="font-medium text-orange-800 dark:text-orange-200">12 Low Stock Items</p>
-                <p className="text-sm text-orange-600 dark:text-orange-300">Need immediate restock</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="font-medium text-blue-800 dark:text-blue-200">8 Pending Orders</p>
-                <p className="text-sm text-blue-600 dark:text-blue-300">Awaiting processing</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="font-medium text-green-800 dark:text-green-200">3 New Reviews</p>
-                <p className="text-sm text-green-600 dark:text-green-300">Average 4.8 stars</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-purple-600" />
-              <div>
-                <p className="font-medium text-purple-800 dark:text-purple-200">15 In Transit</p>
-                <p className="text-sm text-purple-600 dark:text-purple-300">Expected delivery today</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
