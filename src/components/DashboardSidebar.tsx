@@ -55,6 +55,7 @@ const menuItems = [
   {
     title: 'Operations',
     items: [
+      { title: 'Shipping Performance', url: '/dashboard/shipping-performance', icon: Truck },
       { title: 'Delivery & RTO', url: '/dashboard/delivery', icon: Truck },
       { title: 'Returns', url: '/dashboard/returns', icon: AlertTriangle },
       { title: 'Claims', url: '/dashboard/claims', icon: AlertTriangle },
@@ -65,6 +66,7 @@ const menuItems = [
     items: [
       { title: 'Payments', url: '/dashboard/payments', icon: CreditCard },
       { title: 'Reports', url: '/dashboard/reports', icon: FileText },
+      { title: 'Business Reports', url: '/dashboard/business-reports', icon: BarChart3 },
     ],
   },
   {

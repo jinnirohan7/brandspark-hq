@@ -19,6 +19,8 @@ import Marketing from "./pages/dashboard/Marketing";
 import WhatsApp from "./pages/dashboard/WhatsApp";
 import Payments from "./pages/dashboard/Payments";
 import Reports from "./pages/dashboard/Reports"; 
+import BusinessReports from "./pages/dashboard/BusinessReports";
+import ShippingPerformance from "./pages/dashboard/ShippingPerformance";
 import Delivery from "./pages/dashboard/Delivery";
 import Returns from "./pages/dashboard/Returns";
 import Claims from "./pages/dashboard/Claims";
@@ -53,6 +55,8 @@ const App = () => (
             <Route path="whatsapp" element={<WhatsApp />} />
             <Route path="payments" element={<Payments />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="business-reports" element={<BusinessReports />} />
+            <Route path="shipping-performance" element={<ShippingPerformance />} />
             <Route path="delivery" element={<Delivery />} />
             <Route path="returns" element={<Returns />} />
             <Route path="claims" element={<Claims />} />
