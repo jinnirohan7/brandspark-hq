@@ -6,17 +6,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { MapPin, Building2, CreditCard, Truck, HelpCircle, Settings, User, Globe, Package } from 'lucide-react'
+import { ProfileImageUpload } from '@/components/ProfileImageUpload'
+import { MapPin, Building2, CreditCard, Truck, HelpCircle, Settings, User, Globe, Package, ChevronDown } from 'lucide-react'
 
 const Profile = () => {
   const { user } = useAuth()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-
-  // Mock seller data based on the reference image
-  const sellerData = {
+  const [profileImageUrl, setProfileImageUrl] = useState<string>('')
+  
+  // Form state for editable fields
+  const [formData, setFormData] = useState({
     profile: {
       displayName: 'Professional Seller',
       businessName: user?.user_metadata?.company_name || 'Amazon Business',
@@ -43,6 +46,20 @@ const Profile = () => {
       internationalReturns: 'Enabled',
       buyShippingPreferences: 'Amazon Shipping Preferences'
     }
+  })
+
+  const handleInputChange = (section: string, field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section as keyof typeof prev],
+        [field]: value
+      }
+    }))
+  }
+
+  const handleImageChange = (url: string) => {
+    setProfileImageUrl(url)
   }
 
   const handleSave = async () => {
@@ -103,24 +120,60 @@ const Profile = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Profile Image Section */}
+                  <div className="flex flex-col items-center space-y-4 pb-6 border-b">
+                    <ProfileImageUpload 
+                      currentImageUrl={profileImageUrl}
+                      onImageChange={handleImageChange}
+                    />
+                    <div className="text-center">
+                      <h3 className="font-semibold text-lg">{formData.profile.displayName}</h3>
+                      <p className="text-sm text-muted-foreground">{formData.profile.businessName}</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="displayName">Display Name</Label>
+                        <Input
+                          id="displayName"
+                          value={formData.profile.displayName}
+                          onChange={(e) => handleInputChange('profile', 'displayName', e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="businessName">Business Name</Label>
+                        <Input
+                          id="businessName"
+                          value={formData.profile.businessName}
+                          onChange={(e) => handleInputChange('profile', 'businessName', e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
                       <div>
                         <Label className="text-sm font-medium">Listings Status</Label>
                         <div className="mt-1">
                           <Badge variant="secondary" className="text-green-600 bg-green-50">
-                            {sellerData.profile.status}
+                            {formData.profile.status}
                           </Badge>
                         </div>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium">Current Status of Listings</Label>
-                        <p className="text-sm text-muted-foreground">
-                          {sellerData.profile.listingsCount} listings available for sale on Amazon
-                        </p>
-                      </div>
                     </div>
                     <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Current Status of Listings</Label>
+                        <Input
+                          value={formData.profile.listingsCount}
+                          onChange={(e) => handleInputChange('profile', 'listingsCount', e.target.value)}
+                          className="mt-1"
+                          placeholder="Number of listings"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          listings available for sale on Amazon
+                        </p>
+                      </div>
                       <div>
                         <Label className="text-sm font-medium">Your Services</Label>
                         <div className="space-y-2 mt-1">
@@ -128,7 +181,7 @@ const Profile = () => {
                             <span className="text-sm">Sell On Amazon</span>
                             <Badge variant="outline">Professional</Badge>
                           </div>
-                          {sellerData.profile.servicesRegistered.map((service, index) => (
+                          {formData.profile.servicesRegistered.map((service, index) => (
                             <div key={index} className="text-xs text-muted-foreground">
                               {service}
                             </div>
@@ -156,7 +209,7 @@ const Profile = () => {
                       <div>
                         <Label className="text-sm font-medium">Deposit Methods</Label>
                         <div className="space-y-2 mt-1">
-                          {sellerData.payment.depositMethods.map((method, index) => (
+                          {formData.payment.depositMethods.map((method, index) => (
                             <div key={index} className="text-sm text-muted-foreground">
                               {method}
                             </div>
@@ -168,7 +221,7 @@ const Profile = () => {
                       <div>
                         <Label className="text-sm font-medium">Charge Methods</Label>
                         <div className="space-y-2 mt-1">
-                          {sellerData.payment.chargeMethods.map((method, index) => (
+                          {formData.payment.chargeMethods.map((method, index) => (
                             <div key={index} className="text-sm text-muted-foreground">
                               {method}
                             </div>
@@ -179,9 +232,11 @@ const Profile = () => {
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Charge Methods for Advertising</Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {sellerData.payment.advertisingCharges}
-                    </p>
+                    <Input
+                      value={formData.payment.advertisingCharges}
+                      onChange={(e) => handleInputChange('payment', 'advertisingCharges', e.target.value)}
+                      className="mt-1"
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -203,8 +258,8 @@ const Profile = () => {
                         <Label htmlFor="businessAddress">Business Address</Label>
                         <Textarea
                           id="businessAddress"
-                          value={sellerData.business.address}
-                          readOnly
+                          value={formData.business.address}
+                          onChange={(e) => handleInputChange('business', 'address', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -212,8 +267,8 @@ const Profile = () => {
                         <Label htmlFor="legalEntity">Legal Entity</Label>
                         <Input
                           id="legalEntity"
-                          value={sellerData.business.legalEntity}
-                          readOnly
+                          value={formData.business.legalEntity}
+                          onChange={(e) => handleInputChange('business', 'legalEntity', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -221,8 +276,8 @@ const Profile = () => {
                         <Label htmlFor="registeredAddress">Official Registered Address</Label>
                         <Textarea
                           id="registeredAddress"
-                          value={sellerData.business.registeredAddress}
-                          readOnly
+                          value={formData.business.registeredAddress}
+                          onChange={(e) => handleInputChange('business', 'registeredAddress', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -232,16 +287,17 @@ const Profile = () => {
                         <Label htmlFor="merchantToken">Merchant Token</Label>
                         <Input
                           id="merchantToken"
-                          value={sellerData.business.merchantToken}
-                          readOnly
+                          value={formData.business.merchantToken}
+                          onChange={(e) => handleInputChange('business', 'merchantToken', e.target.value)}
                           className="mt-1"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="displayName">Display Name</Label>
+                        <Label htmlFor="businessDisplayName">Display Name</Label>
                         <Input
-                          id="displayName"
-                          value={sellerData.business.displayName}
+                          id="businessDisplayName"
+                          value={formData.business.displayName}
+                          onChange={(e) => handleInputChange('business', 'displayName', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -249,8 +305,8 @@ const Profile = () => {
                         <Label htmlFor="feedLanguage">Language for feed processing report</Label>
                         <Input
                           id="feedLanguage"
-                          value={sellerData.business.feedLanguage}
-                          readOnly
+                          value={formData.business.feedLanguage}
+                          onChange={(e) => handleInputChange('business', 'feedLanguage', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -276,7 +332,8 @@ const Profile = () => {
                         <Label htmlFor="returnAddress">Return Address</Label>
                         <Textarea
                           id="returnAddress"
-                          value={sellerData.shipping.returnAddress}
+                          value={formData.shipping.returnAddress}
+                          onChange={(e) => handleInputChange('shipping', 'returnAddress', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -284,8 +341,8 @@ const Profile = () => {
                         <Label htmlFor="internationalReturns">International Returns Providers</Label>
                         <Input
                           id="internationalReturns"
-                          value={sellerData.shipping.internationalReturns}
-                          readOnly
+                          value={formData.shipping.internationalReturns}
+                          onChange={(e) => handleInputChange('shipping', 'internationalReturns', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -295,8 +352,8 @@ const Profile = () => {
                         <Label htmlFor="shippingSettings">Shipping Settings</Label>
                         <Input
                           id="shippingSettings"
-                          value={sellerData.shipping.shippingSettings}
-                          readOnly
+                          value={formData.shipping.shippingSettings}
+                          onChange={(e) => handleInputChange('shipping', 'shippingSettings', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -304,8 +361,8 @@ const Profile = () => {
                         <Label htmlFor="buyShippingPreferences">Buy Shipping Preferences</Label>
                         <Input
                           id="buyShippingPreferences"
-                          value={sellerData.shipping.buyShippingPreferences}
-                          readOnly
+                          value={formData.shipping.buyShippingPreferences}
+                          onChange={(e) => handleInputChange('shipping', 'buyShippingPreferences', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -324,25 +381,55 @@ const Profile = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <HelpCircle className="h-5 w-5" />
-                FAQ
+                Frequently Asked Questions
               </CardTitle>
+              <CardDescription>
+                Common questions about seller account management
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="link" className="p-0 h-auto text-left text-blue-600 hover:text-blue-800 text-sm">
-                How do I update my tax information and legal name?
-              </Button>
-              <Button variant="link" className="p-0 h-auto text-left text-blue-600 hover:text-blue-800 text-sm">
-                I signed up for an account by mistake or don't need it anymore. How do I close the account?
-              </Button>
-              <Button variant="link" className="p-0 h-auto text-left text-blue-600 hover:text-blue-800 text-sm">
-                I am taking time off (vacation). How can I temporarily deactivate my listings?
-              </Button>
-              <Button variant="link" className="p-0 h-auto text-left text-blue-600 hover:text-blue-800 text-sm">
-                Why are my items no longer for sale?
-              </Button>
-              <Button variant="link" className="p-0 h-auto text-left text-blue-600 hover:text-blue-800 text-sm">
-                Why did my credit card have an error or become invalid?
-              </Button>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1">
+                  <AccordionTrigger className="text-left">
+                    How do I update my tax information and legal name?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    You can update your tax information by going to Settings &gt; Tax Information. For legal name changes, you&apos;ll need to contact Seller Support with proper documentation.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                  <AccordionTrigger className="text-left">
+                    How do I close my seller account?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    To close your account, go to Settings &gt; Account Info and select &quot;Close Account&quot;. Note that you must resolve all pending orders and issues before closing.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-3">
+                  <AccordionTrigger className="text-left">
+                    How can I temporarily deactivate my listings?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    You can set your account to vacation mode in Settings &gt; Account Info &gt; Vacation Settings. This will temporarily pause your listings.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-4">
+                  <AccordionTrigger className="text-left">
+                    Why are my items no longer for sale?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    Items may be deactivated due to policy violations, inventory issues, or account health problems. Check your Account Health dashboard for specific issues.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-5">
+                  <AccordionTrigger className="text-left">
+                    Why did my credit card have an error?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    Credit card errors can occur due to expired cards, insufficient funds, or bank restrictions. Update your payment method in the Payment Information section.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </CardContent>
           </Card>
 
