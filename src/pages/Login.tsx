@@ -28,28 +28,67 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Login attempt:', { email, password: password.length > 0 ? '***' : 'empty' })
     setLoading(true)
 
     try {
       const { error } = await signIn(email, password)
       
       if (error) {
+        console.error('Login error:', error)
         toast({
           title: 'Error',
           description: error.message,
           variant: 'destructive',
         })
       } else {
+        console.log('Login successful')
         toast({
           title: 'Success',
           description: 'Welcome back!',
         })
       }
     } catch (error) {
+      console.error('Unexpected login error:', error)
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',
         variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDemoLogin = async () => {
+    console.log('Demo login attempt')
+    setEmail('demo@sellsphere.com')
+    setPassword('demo123456')
+    setLoading(true)
+
+    try {
+      const { error } = await signIn('demo@sellsphere.com', 'demo123456')
+      
+      if (error) {
+        console.error('Demo login error:', error)
+        toast({
+          title: 'Demo Login Info',
+          description: 'Demo account not set up. Please register or use your own credentials.',
+          variant: 'default',
+        })
+      } else {
+        console.log('Demo login successful')
+        toast({
+          title: 'Success',
+          description: 'Welcome to the demo!',
+        })
+      }
+    } catch (error) {
+      console.error('Demo login error:', error)
+      toast({
+        title: 'Demo Login Info',
+        description: 'Demo account not set up. Please register or use your own credentials.',
+        variant: 'default',
       })
     } finally {
       setLoading(false)
@@ -124,6 +163,17 @@ const Login = () => {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
+            </Button>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full mt-2" 
+              onClick={handleDemoLogin}
+              disabled={loading}
+            >
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Try Demo Dashboard
             </Button>
           </form>
           

@@ -28,6 +28,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
+  console.log('AuthProvider state:', { user: !!user, session: !!session, loading })
+
   useEffect(() => {
     // Listen for auth changes first
     const {
