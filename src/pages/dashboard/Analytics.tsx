@@ -3,6 +3,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { 
   BarChart, 
   Bar, 
@@ -15,7 +18,11 @@ import {
   Line,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  AreaChart,
+  Area,
+  ComposedChart,
+  Legend
 } from 'recharts'
 import { 
   TrendingUp, 
@@ -25,62 +32,126 @@ import {
   Eye, 
   DollarSign,
   Calendar,
-  Download
+  Download,
+  RefreshCw,
+  Filter,
+  AlertTriangle,
+  Package,
+  Target,
+  Percent
 } from 'lucide-react'
+import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
 
 const Analytics = () => {
-  const salesData = [
-    { month: 'Jan', sales: 12000, visitors: 4500, orders: 89 },
-    { month: 'Feb', sales: 19000, visitors: 6200, orders: 134 },
-    { month: 'Mar', sales: 15000, visitors: 5800, orders: 112 },
-    { month: 'Apr', sales: 22000, visitors: 7200, orders: 156 },
-    { month: 'May', sales: 28000, visitors: 8900, orders: 198 },
-    { month: 'Jun', sales: 32000, visitors: 9800, orders: 223 },
-  ]
+  const { 
+    data, 
+    loading, 
+    error, 
+    filters, 
+    setFilters, 
+    keyMetrics,
+    exportReport,
+    refetch 
+  } = useAdvancedAnalytics()
 
-  const trafficSources = [
-    { name: 'Organic Search', value: 45, color: '#2563eb' },
-    { name: 'Direct', value: 25, color: '#059669' },
-    { name: 'Social Media', value: 15, color: '#7c3aed' },
-    { name: 'Paid Ads', value: 10, color: '#f59e0b' },
-    { name: 'Email', value: 5, color: '#ef4444' },
-  ]
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
 
-  const topProducts = [
-    { name: 'Wireless Headphones', sales: 234, revenue: '₹5,84,766', growth: '+12%' },
-    { name: 'Smart Watch', sales: 189, revenue: '₹9,44,811', growth: '+8%' },
-    { name: 'Laptop Stand', sales: 156, revenue: '₹1,40,244', growth: '+15%' },
-    { name: 'USB Cable', sales: 134, revenue: '₹40,066', growth: '-2%' },
-  ]
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-IN').format(num)
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Analytics & Reports</h1>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
+        </div>
+        <Skeleton className="h-96" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Analytics & Reports</h1>
+          <Button onClick={refetch}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <AlertTriangle className="mx-auto h-16 w-16 text-destructive mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Failed to load analytics</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={refetch}>Try Again</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!data || !keyMetrics) return null
 
   const stats = [
     {
       title: 'Total Revenue',
-      value: '₹3,24,567',
-      change: '+12.5%',
-      changeType: 'positive' as const,
+      value: formatCurrency(keyMetrics.totalRevenue),
+      change: `${keyMetrics.revenueGrowth > 0 ? '+' : ''}${keyMetrics.revenueGrowth.toFixed(1)}%`,
+      changeType: keyMetrics.revenueGrowth > 0 ? 'positive' as const : 'negative' as const,
       icon: DollarSign,
     },
     {
+      title: 'Total Orders',
+      value: formatNumber(keyMetrics.totalOrders),
+      change: `${keyMetrics.orderGrowth > 0 ? '+' : ''}${keyMetrics.orderGrowth.toFixed(1)}%`,
+      changeType: keyMetrics.orderGrowth > 0 ? 'positive' as const : 'negative' as const,
+      icon: ShoppingCart,
+    },
+    {
       title: 'Website Visitors',
-      value: '42,531',
-      change: '+8.2%',
-      changeType: 'positive' as const,
+      value: formatNumber(keyMetrics.totalVisitors),
+      change: `${keyMetrics.visitorGrowth > 0 ? '+' : ''}${keyMetrics.visitorGrowth.toFixed(1)}%`,
+      changeType: keyMetrics.visitorGrowth > 0 ? 'positive' as const : 'negative' as const,
       icon: Users,
     },
     {
-      title: 'Page Views',
-      value: '1,28,945',
-      change: '+15.3%',
+      title: 'Conversion Rate',
+      value: `${keyMetrics.conversionRate.toFixed(2)}%`,
+      change: '+0.3%',
       changeType: 'positive' as const,
-      icon: Eye,
+      icon: Target,
     },
     {
-      title: 'Conversion Rate',
-      value: '3.24%',
-      change: '+0.8%',
+      title: 'Avg Order Value',
+      value: formatCurrency(keyMetrics.averageOrderValue),
+      change: '+5.2%',
       changeType: 'positive' as const,
-      icon: ShoppingCart,
+      icon: TrendingUp,
+    },
+    {
+      title: 'Page Views',
+      value: formatNumber(keyMetrics.totalPageViews),
+      change: '+12.8%',
+      changeType: 'positive' as const,
+      icon: Eye,
     },
   ]
 
@@ -89,18 +160,23 @@ const Analytics = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Analytics & Reports</h1>
         <div className="flex gap-2">
-          <Select defaultValue="30days">
+          <Select value={filters.dateRange} onValueChange={(value) => setFilters({ ...filters, dateRange: value })}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7days">Last 7 days</SelectItem>
-              <SelectItem value="30days">Last 30 days</SelectItem>
-              <SelectItem value="90days">Last 90 days</SelectItem>
-              <SelectItem value="1year">Last year</SelectItem>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="1y">Last year</SelectItem>
+              <SelectItem value="all">All time</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button variant="outline" onClick={refetch}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={() => exportReport('sales')}>
             <Download className="mr-2 h-4 w-4" />
             Export Report
           </Button>
@@ -108,9 +184,9 @@ const Analytics = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.title} className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
               <stat.icon className="h-4 w-4 text-muted-foreground" />
@@ -121,95 +197,206 @@ const Analytics = () => {
                 <span className={stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}>
                   {stat.change}
                 </span>{' '}
-                from last month
+                from last period
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      {/* Quick Insights */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Low Stock Alerts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              <span className="text-2xl font-bold">{data.inventoryAlerts.length}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Items need attention</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Customer Retention</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Percent className="h-5 w-5 text-blue-500" />
+              <span className="text-2xl font-bold">{data.customerMetrics.customerRetentionRate}%</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Returning customers</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">New Customers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-green-500" />
+              <span className="text-2xl font-bold">{formatNumber(data.customerMetrics.newCustomers)}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">This month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Customer LTV</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-purple-500" />
+              <span className="text-2xl font-bold">{formatCurrency(data.customerMetrics.customerLifetimeValue)}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Average lifetime value</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="sales">Sales Analytics</TabsTrigger>
-          <TabsTrigger value="traffic">Traffic Sources</TabsTrigger>
-          <TabsTrigger value="products">Product Performance</TabsTrigger>
+          <TabsTrigger value="sales">Sales</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="customers">Customers</TabsTrigger>
+          <TabsTrigger value="traffic">Traffic</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
-                <CardDescription>Monthly revenue over the last 6 months</CardDescription>
+                <CardTitle>Revenue & Orders Trend</CardTitle>
+                <CardDescription>Performance over time with dual axis</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                <ResponsiveContainer width="100%" height={350}>
+                  <ComposedChart data={data.salesData}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`₹${value}`, 'Revenue']} />
+                    <YAxis yAxisId="left" orientation="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip 
+                      formatter={(value, name) => [
+                        name === 'sales' ? formatCurrency(value as number) : value,
+                        name === 'sales' ? 'Revenue' : 'Orders'
+                      ]}
+                    />
+                    <Legend />
+                    <Bar yAxisId="right" dataKey="orders" fill="hsl(var(--primary))" name="Orders" />
                     <Line 
+                      yAxisId="left"
                       type="monotone" 
                       dataKey="sales" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={2}
+                      stroke="hsl(var(--destructive))" 
+                      strokeWidth={3}
+                      name="Revenue"
                     />
-                  </LineChart>
+                  </ComposedChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Visitor Analytics</CardTitle>
-                <CardDescription>Website traffic and order conversion</CardDescription>
+                <CardTitle>Revenue by Category</CardTitle>
+                <CardDescription>Performance breakdown by product categories</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="visitors" fill="hsl(var(--primary))" />
-                    <Bar dataKey="orders" fill="hsl(var(--secondary))" />
-                  </BarChart>
+                <ResponsiveContainer width="100%" height={350}>
+                  <PieChart>
+                    <Pie
+                      data={data.revenueByCategory}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="revenue"
+                    >
+                      {data.revenueByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [formatCurrency(value as number), 'Revenue']} />
+                    <Legend />
+                  </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Performing Products</CardTitle>
-              <CardDescription>Your best selling products this month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {topProducts.map((product, index) => (
-                  <div key={product.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-medium">{index + 1}</span>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Traffic & Conversion</CardTitle>
+                <CardDescription>Visitor flow and conversion metrics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={data.salesData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area 
+                      type="monotone" 
+                      dataKey="visitors" 
+                      stackId="1"
+                      stroke="hsl(var(--primary))" 
+                      fill="hsl(var(--primary))"
+                      fillOpacity={0.6}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="pageViews" 
+                      stackId="1"
+                      stroke="hsl(var(--secondary))" 
+                      fill="hsl(var(--secondary))"
+                      fillOpacity={0.4}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Performing Products</CardTitle>
+                <CardDescription>Best sellers with growth metrics</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {data.topProducts.slice(0, 6).map((product, index) => (
+                    <div key={product.name} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-medium">{index + 1}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-sm text-muted-foreground">{product.sales} sales • {product.views} views</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">{product.sales} sales</p>
+                      <div className="text-right">
+                        <p className="font-medium">{formatCurrency(product.revenue)}</p>
+                        <Badge variant={product.growth.startsWith('+') ? 'default' : 'destructive'}>
+                          {product.growth}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{product.revenue}</p>
-                      <p className={`text-sm ${product.growth.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
-                        {product.growth}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="sales" className="space-y-4">
@@ -220,11 +407,11 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={salesData}>
+                <BarChart data={data.salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`₹${value}`, 'Sales']} />
+                  <Tooltip formatter={(value) => [formatCurrency(value as number), 'Sales']} />
                   <Bar dataKey="sales" fill="hsl(var(--primary))" />
                 </BarChart>
               </ResponsiveContainer>
@@ -243,7 +430,7 @@ const Analytics = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={trafficSources}
+                      data={data.trafficSources}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -251,7 +438,7 @@ const Analytics = () => {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {trafficSources.map((entry, index) => (
+                      {data.trafficSources.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -268,7 +455,7 @@ const Analytics = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {trafficSources.map((source) => (
+                  {data.trafficSources.map((source) => (
                     <div key={source.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div 
@@ -294,7 +481,7 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {topProducts.map((product, index) => (
+                {data.topProducts.map((product, index) => (
                   <div key={product.name} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium">{product.name}</h3>
