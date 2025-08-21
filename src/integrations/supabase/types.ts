@@ -495,54 +495,284 @@ export type Database = {
           },
         ]
       }
+      seller_documents: {
+        Row: {
+          created_at: string | null
+          document_name: string
+          document_number: string | null
+          document_type: string
+          expires_at: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          issuing_authority: string | null
+          mime_type: string | null
+          remarks: string | null
+          seller_id: string
+          updated_at: string | null
+          uploaded_at: string | null
+          verification_status: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_name: string
+          document_number?: string | null
+          document_type: string
+          expires_at?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          issuing_authority?: string | null
+          mime_type?: string | null
+          remarks?: string | null
+          seller_id: string
+          updated_at?: string | null
+          uploaded_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_name?: string
+          document_number?: string | null
+          document_type?: string
+          expires_at?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          issuing_authority?: string | null
+          mime_type?: string | null
+          remarks?: string | null
+          seller_id?: string
+          updated_at?: string | null
+          uploaded_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      seller_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          payment_method: string | null
+          plan_id: string
+          seller_id: string
+          started_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          payment_method?: string | null
+          plan_id: string
+          seller_id: string
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          payment_method?: string | null
+          plan_id?: string
+          seller_id?: string
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sellers: {
         Row: {
+          account_status: string | null
           address: string | null
+          annual_turnover: number | null
           bank_account: string | null
+          brand_certificate_url: string | null
+          business_category: string | null
+          business_type: string | null
+          city: string | null
           company_name: string
+          compliance_status: string | null
+          country: string | null
           created_at: string
           email: string
+          employee_count: number | null
+          establishment_date: string | null
+          fssai_license: string | null
           full_name: string
           gst_number: string | null
           id: string
+          ifsc_code: string | null
           kyc_verified: boolean | null
+          last_login: string | null
           pan_number: string | null
           phone: string | null
+          pincode: string | null
+          preferred_currency: string | null
+          preferred_language: string | null
+          profile_image_url: string | null
+          shop_establishment_license: string | null
+          state: string | null
           subscription_plan: string | null
+          tax_id: string | null
+          two_factor_enabled: boolean | null
           updated_at: string
+          upi_id: string | null
           user_id: string
+          vat_number: string | null
+          verification_score: number | null
+          website_url: string | null
         }
         Insert: {
+          account_status?: string | null
           address?: string | null
+          annual_turnover?: number | null
           bank_account?: string | null
+          brand_certificate_url?: string | null
+          business_category?: string | null
+          business_type?: string | null
+          city?: string | null
           company_name: string
+          compliance_status?: string | null
+          country?: string | null
           created_at?: string
           email: string
+          employee_count?: number | null
+          establishment_date?: string | null
+          fssai_license?: string | null
           full_name: string
           gst_number?: string | null
           id?: string
+          ifsc_code?: string | null
           kyc_verified?: boolean | null
+          last_login?: string | null
           pan_number?: string | null
           phone?: string | null
+          pincode?: string | null
+          preferred_currency?: string | null
+          preferred_language?: string | null
+          profile_image_url?: string | null
+          shop_establishment_license?: string | null
+          state?: string | null
           subscription_plan?: string | null
+          tax_id?: string | null
+          two_factor_enabled?: boolean | null
           updated_at?: string
+          upi_id?: string | null
           user_id: string
+          vat_number?: string | null
+          verification_score?: number | null
+          website_url?: string | null
         }
         Update: {
+          account_status?: string | null
           address?: string | null
+          annual_turnover?: number | null
           bank_account?: string | null
+          brand_certificate_url?: string | null
+          business_category?: string | null
+          business_type?: string | null
+          city?: string | null
           company_name?: string
+          compliance_status?: string | null
+          country?: string | null
           created_at?: string
           email?: string
+          employee_count?: number | null
+          establishment_date?: string | null
+          fssai_license?: string | null
           full_name?: string
           gst_number?: string | null
           id?: string
+          ifsc_code?: string | null
           kyc_verified?: boolean | null
+          last_login?: string | null
           pan_number?: string | null
           phone?: string | null
+          pincode?: string | null
+          preferred_currency?: string | null
+          preferred_language?: string | null
+          profile_image_url?: string | null
+          shop_establishment_license?: string | null
+          state?: string | null
           subscription_plan?: string | null
+          tax_id?: string | null
+          two_factor_enabled?: boolean | null
           updated_at?: string
+          upi_id?: string | null
           user_id?: string
+          vat_number?: string | null
+          verification_score?: number | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          billing_cycle: string | null
+          commission_rate: number | null
+          created_at: string | null
+          currency: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_orders: number | null
+          max_products: number | null
+          name: string
+          price: number
+          storage_limit_gb: number | null
+          support_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_cycle?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          currency?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_orders?: number | null
+          max_products?: number | null
+          name: string
+          price: number
+          storage_limit_gb?: number | null
+          support_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_cycle?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          currency?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_orders?: number | null
+          max_products?: number | null
+          name?: string
+          price?: number
+          storage_limit_gb?: number | null
+          support_level?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
