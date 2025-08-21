@@ -21,7 +21,7 @@ export default function Reports() {
   const [endDate, setEndDate] = useState<Date>()
   const [reportType, setReportType] = useState('sales')
   const [timeframe, setTimeframe] = useState('monthly')
-  const [format, setFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
+  const [reportFormat, setReportFormat] = useState<'csv' | 'excel' | 'pdf'>('csv')
   const [includeFields, setIncludeFields] = useState<string[]>(['sales_summary', 'product_performance'])
   const [generating, setGenerating] = useState(false)
 
@@ -81,7 +81,7 @@ export default function Reports() {
         endDate,
         timeframe,
         includeFields,
-        format
+        format: reportFormat
       })
 
       toast({
@@ -356,7 +356,7 @@ export default function Reports() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Format</label>
-                    <Select value={format} onValueChange={(value: 'csv' | 'excel' | 'pdf') => setFormat(value)}>
+                    <Select value={reportFormat} onValueChange={(value: 'csv' | 'excel' | 'pdf') => setReportFormat(value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select format" />
                       </SelectTrigger>
