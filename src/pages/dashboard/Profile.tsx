@@ -10,11 +10,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { ProfileImageUpload } from '@/components/ProfileImageUpload'
-import { MapPin, Building2, CreditCard, Truck, HelpCircle, Settings, User, Globe, Package, ChevronDown } from 'lucide-react'
+import { MapPin, Building2, CreditCard, Truck, HelpCircle, Settings, User, Globe, Package, ChevronDown, FileText, Upload, Eye } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useSellerProfile } from '@/hooks/useSellerProfile'
 
 const Profile = () => {
   const { user } = useAuth()
   const { toast } = useToast()
+  const { documents } = useSellerProfile()
   const [loading, setLoading] = useState(false)
   const [profileImageUrl, setProfileImageUrl] = useState<string>('')
   
@@ -508,6 +511,64 @@ const Profile = () => {
 
         {/* Sidebar */}
         <div className="space-y-4 sm:space-y-6 min-w-0">
+          {/* Document Status Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Document Status
+              </CardTitle>
+              <CardDescription>
+                View all your uploaded documents and their verification status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {documents && documents.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="text-lg font-semibold text-green-600">
+                          {documents.filter(doc => doc.verification_status === 'verified').length}
+                        </div>
+                        <div className="text-xs text-green-600">Verified</div>
+                      </div>
+                      <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <div className="text-lg font-semibold text-yellow-600">
+                          {documents.filter(doc => doc.verification_status === 'pending').length}
+                        </div>
+                        <div className="text-xs text-yellow-600">Pending</div>
+                      </div>
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div className="text-lg font-semibold text-red-600">
+                          {documents.filter(doc => doc.verification_status === 'rejected').length}
+                        </div>
+                        <div className="text-xs text-red-600">Rejected</div>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/dashboard/documents">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View All Documents
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground mb-4">No documents uploaded yet</p>
+                    <Button asChild>
+                      <Link to="/dashboard/documents">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Documents
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* FAQ Section */}
           <Card>
             <CardHeader>

@@ -144,7 +144,7 @@ const Documents = () => {
     }
   ]
 
-  const allDocuments = [...(documents || []), ...mockDocuments]
+  const allDocuments = documents || []
 
   const getStatusIcon = (status: string) => {
     switch (status) {

@@ -75,7 +75,7 @@ const menuItems = [
     items: [
       { title: 'Support', url: '/dashboard/support', icon: Headphones },
       { title: 'Reviews', url: '/dashboard/reviews', icon: Star },
-      { title: 'Documents', url: '/dashboard/docs', icon: FileCheck },
+      { title: 'Documents', url: '/dashboard/documents', icon: FileCheck },
     ],
   },
   {
