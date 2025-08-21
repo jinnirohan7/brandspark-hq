@@ -287,7 +287,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={orderRevenueData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -321,7 +321,7 @@ const Dashboard = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">September</p>
@@ -353,7 +353,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={rtoData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -380,7 +380,7 @@ const Dashboard = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
             <div className="text-center mt-4">
               <p className="text-sm text-muted-foreground">September</p>
               <p className="text-2xl font-bold text-blue-500">16%</p>
