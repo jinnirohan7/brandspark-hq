@@ -1,202 +1,306 @@
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Search, Plus, Edit, Eye, Copy, Upload, Download } from 'lucide-react'
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Search, Plus, Edit, Eye, Copy, Upload, Download, Filter, 
+  AlertTriangle, CheckCircle, Clock, XCircle, Package, TrendingUp 
+} from 'lucide-react';
+import ProductForm from '@/components/ProductForm';
+import CSVImport from '@/components/CSVImport';
+import useProductManagement, { Product } from '@/hooks/useProductManagement';
 
 const Listings = () => {
-  const [searchTerm, setSearchTerm] = useState('')
+  const {
+    products,
+    loading,
+    filters,
+    setFilters,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    duplicateProduct,
+    bulkUpdateStatus,
+    getProductStats,
+    getCategories,
+    exportToCSV,
+  } = useProductManagement();
 
-  const products = [
-    {
-      id: 'PROD-001',
-      name: 'Wireless Headphones Pro',
-      category: 'Electronics',
-      price: '₹2,499',
-      status: 'Active',
-      views: 1250,
-      sales: 89,
-      image: '/placeholder.svg',
-      description: 'High-quality wireless headphones with noise cancellation',
-    },
-    {
-      id: 'PROD-002',
-      name: 'Smart Fitness Watch',
-      category: 'Electronics',
-      price: '₹4,999',
-      status: 'Active',
-      views: 856,
-      sales: 45,
-      image: '/placeholder.svg',
-      description: 'Advanced fitness tracking with heart rate monitor',
-    },
-    {
-      id: 'PROD-003',
-      name: 'Ergonomic Laptop Stand',
-      category: 'Accessories',
-      price: '₹899',
-      status: 'Draft',
-      views: 0,
-      sales: 0,
-      image: '/placeholder.svg',
-      description: 'Adjustable laptop stand for better posture',
-    },
-    {
-      id: 'PROD-004',
-      name: 'Premium USB-C Cable',
-      category: 'Accessories',
-      price: '₹299',
-      status: 'Inactive',
-      views: 234,
-      sales: 12,
-      image: '/placeholder.svg',
-      description: 'Fast charging USB-C cable with data transfer',
-    },
-  ]
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [isProductFormOpen, setIsProductFormOpen] = useState(false);
+  const [isCSVImportOpen, setIsCSVImportOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const stats = getProductStats();
+  const categories = getCategories();
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      'Active': 'default',
-      'Draft': 'secondary',
-      'Inactive': 'outline',
-    } as const
+    const config = {
+      'active': { variant: 'default', icon: CheckCircle, color: 'text-green-600' },
+      'draft': { variant: 'secondary', icon: Clock, color: 'text-yellow-600' },
+      'inactive': { variant: 'outline', icon: XCircle, color: 'text-red-600' },
+    } as const;
 
-    return <Badge variant={variants[status as keyof typeof variants]}>{status}</Badge>
+    const { variant, icon: Icon, color } = config[status as keyof typeof config] || config.draft;
+    return (
+      <Badge variant={variant} className="flex items-center gap-1">
+        <Icon className={`h-3 w-3 ${color}`} />
+        {status}
+      </Badge>
+    );
+  };
+
+  const getStockBadge = (stock: number, threshold: number = 10) => {
+    if (stock === 0) {
+      return <Badge variant="destructive">Out of Stock</Badge>;
+    }
+    if (stock <= threshold) {
+      return <Badge variant="outline" className="text-orange-600 border-orange-600">Low Stock</Badge>;
+    }
+    return <Badge variant="secondary" className="text-green-600">In Stock</Badge>;
+  };
+
+  const filteredProducts = products.filter(product => {
+    let matches = true;
+
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      matches = matches && (
+        product.name.toLowerCase().includes(searchLower) ||
+        product.sku.toLowerCase().includes(searchLower) ||
+        product.category.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (filters.category && filters.category !== 'all') {
+      matches = matches && product.category === filters.category;
+    }
+
+    if (filters.status && filters.status !== 'all') {
+      matches = matches && product.status === filters.status;
+    }
+
+    return matches;
+  });
+
+  const handleProductSubmit = async (productData: Omit<Product, 'id'>) => {
+    try {
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, productData);
+      } else {
+        await createProduct(productData);
+      }
+      setIsProductFormOpen(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error saving product:', error);
+    }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsProductFormOpen(true);
+  };
+
+  const handleDuplicateProduct = async (product: Product) => {
+    try {
+      await duplicateProduct(product);
+    } catch (error) {
+      console.error('Error duplicating product:', error);
+    }
+  };
+
+  const handleCSVImport = async (importedProducts: any[]) => {
+    try {
+      for (const productData of importedProducts) {
+        await createProduct({
+          name: productData.name,
+          sku: productData.sku,
+          category: productData.category,
+          description: productData.description,
+          price: parseFloat(productData.price),
+          stock_quantity: parseInt(productData.stock),
+          status: productData.status || 'draft',
+          weight: productData.weight ? parseFloat(productData.weight) : undefined,
+          image_url: productData.image_url,
+          low_stock_threshold: productData.low_stock_threshold ? parseInt(productData.low_stock_threshold) : 10,
+        });
+      }
+      setIsCSVImportOpen(false);
+    } catch (error) {
+      console.error('Error importing products:', error);
+    }
+  };
+
+  const handleBulkAction = async (action: string) => {
+    if (selectedProducts.length === 0) return;
+
+    switch (action) {
+      case 'activate':
+        await bulkUpdateStatus(selectedProducts, 'active');
+        break;
+      case 'deactivate':
+        await bulkUpdateStatus(selectedProducts, 'inactive');
+        break;
+      case 'draft':
+        await bulkUpdateStatus(selectedProducts, 'draft');
+        break;
+    }
+    setSelectedProducts([]);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (productId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(prev => [...prev, productId]);
+    } else {
+      setSelectedProducts(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Loading products...</div>;
   }
-
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  )
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Product Listings</h1>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Import CSV
-          </Button>
-          <Button variant="outline">
+          <Dialog open={isCSVImportOpen} onOpenChange={setIsCSVImportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="mr-2 h-4 w-4" />
+                Import CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Import Products from CSV</DialogTitle>
+                <DialogDescription>
+                  Upload a CSV file to bulk import products
+                </DialogDescription>
+              </DialogHeader>
+              <CSVImport
+                onImport={handleCSVImport}
+                onClose={() => setIsCSVImportOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <Button variant="outline" onClick={exportToCSV}>
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          <Dialog>
+          
+          <Dialog open={isProductFormOpen} onOpenChange={setIsProductFormOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => setEditingProduct(null)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Product</DialogTitle>
+                <DialogTitle>
+                  {editingProduct ? 'Edit Product' : 'Create New Product'}
+                </DialogTitle>
                 <DialogDescription>
-                  Add a new product to your catalog
+                  {editingProduct ? 'Update product information' : 'Add a new product to your catalog'}
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Product Name</Label>
-                    <Input id="name" placeholder="Enter product name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="electronics">Electronics</SelectItem>
-                        <SelectItem value="accessories">Accessories</SelectItem>
-                        <SelectItem value="clothing">Clothing</SelectItem>
-                        <SelectItem value="home">Home & Garden</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
-                    <Input id="price" placeholder="₹0.00" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stock">Stock Quantity</Label>
-                    <Input id="stock" type="number" placeholder="0" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" placeholder="Product description" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="images">Product Images</Label>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Drag & drop images here or click to upload
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline">Save as Draft</Button>
-                  <Button>Publish Product</Button>
-                </div>
-              </div>
+              <ProductForm
+                product={editingProduct || undefined}
+                onSubmit={handleProductSubmit}
+                onCancel={() => {
+                  setIsProductFormOpen(false);
+                  setEditingProduct(null);
+                }}
+              />
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+2</span> this month
+              <span className="text-green-600">+{Math.floor(stats.total * 0.1)}</span> this month
             </p>
           </CardContent>
         </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {products.filter(p => p.status === 'Active').length}
-            </div>
+            <div className="text-2xl font-bold">{stats.active}</div>
             <p className="text-xs text-muted-foreground">Currently selling</p>
           </CardContent>
         </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Drafts</CardTitle>
+            <Clock className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.draft}</div>
+            <p className="text-xs text-muted-foreground">Pending review</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.lowStock}</div>
+            <p className="text-xs text-muted-foreground">Need restocking</p>
+          </CardContent>
+        </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {products.reduce((sum, p) => sum + p.views, 0)}
-            </div>
+            <div className="text-2xl font-bold">{stats.totalViews.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Conversion</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3.2%</div>
+            <div className="text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600">+0.5%</span> from last month
             </p>
@@ -205,31 +309,66 @@ const Listings = () => {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Products</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="draft">Drafts</TabsTrigger>
-          <TabsTrigger value="inactive">Inactive</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="all">All Products ({stats.total})</TabsTrigger>
+            <TabsTrigger value="active">Active ({stats.active})</TabsTrigger>
+            <TabsTrigger value="draft">Drafts ({stats.draft})</TabsTrigger>
+            <TabsTrigger value="inactive">Inactive ({stats.inactive})</TabsTrigger>
+          </TabsList>
+
+          {selectedProducts.length > 0 && (
+            <div className="flex gap-2">
+              <span className="text-sm text-muted-foreground">
+                {selectedProducts.length} selected
+              </span>
+              <Button size="sm" variant="outline" onClick={() => handleBulkAction('activate')}>
+                Activate
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleBulkAction('deactivate')}>
+                Deactivate
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleBulkAction('draft')}>
+                Move to Draft
+              </Button>
+            </div>
+          )}
+        </div>
 
         <div className="flex gap-4 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search products, SKUs, or descriptions..."
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               className="pl-10"
             />
           </div>
-          <Select>
+          
+          <Select value={filters.category} onValueChange={(value) => setFilters({ ...filters, category: value })}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="electronics">Electronics</SelectItem>
-              <SelectItem value="accessories">Accessories</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Select value={filters.sortBy} onValueChange={(value) => setFilters({ ...filters, sortBy: value })}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="created_at">Date Created</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="price">Price</SelectItem>
+              <SelectItem value="stock_quantity">Stock</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -246,12 +385,17 @@ const Listings = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Product</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Views</TableHead>
-                    <TableHead>Sales</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -259,32 +403,62 @@ const Listings = () => {
                   {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell>
+                        <Checkbox
+                          checked={selectedProducts.includes(product.id)}
+                          onCheckedChange={(checked) => handleSelectProduct(product.id, checked as boolean)}
+                        />
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <img 
-                            src={product.image} 
-                            alt={product.name}
-                            className="w-10 h-10 rounded object-cover"
-                          />
+                          {product.image_url ? (
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name}
+                              className="w-12 h-12 rounded object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
+                              <Package className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
                           <div>
                             <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-muted-foreground">{product.id}</p>
+                            <p className="text-sm text-muted-foreground">{product.sku}</p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell className="font-medium">{product.price}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{product.category}</Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        ₹{product.price.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{product.stock_quantity}</div>
+                          {getStockBadge(product.stock_quantity, product.low_stock_threshold)}
+                        </div>
+                      </TableCell>
                       <TableCell>{getStatusBadge(product.status)}</TableCell>
-                      <TableCell>{product.views}</TableCell>
-                      <TableCell>{product.sales}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="sm" title="View Details">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleEditProduct(product)}
+                            title="Edit Product"
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDuplicateProduct(product)}
+                            title="Duplicate Product"
+                          >
                             <Copy className="h-4 w-4" />
                           </Button>
                         </div>
@@ -293,15 +467,26 @@ const Listings = () => {
                   ))}
                 </TableBody>
               </Table>
+              
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No products found. Try adjusting your filters or add some products.
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Other tabs would show filtered content */}
         <TabsContent value="active">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">Active products will be displayed here</p>
+              <div className="text-center py-8">
+                <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Active Products</h3>
+                <p className="text-muted-foreground mb-4">
+                  {stats.active} products are currently active and selling
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -309,7 +494,13 @@ const Listings = () => {
         <TabsContent value="draft">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">Draft products will be displayed here</p>
+              <div className="text-center py-8">
+                <Clock className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Draft Products</h3>
+                <p className="text-muted-foreground mb-4">
+                  {stats.draft} products are in draft status and need review
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -317,13 +508,19 @@ const Listings = () => {
         <TabsContent value="inactive">
           <Card>
             <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">Inactive products will be displayed here</p>
+              <div className="text-center py-8">
+                <XCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Inactive Products</h3>
+                <p className="text-muted-foreground mb-4">
+                  {stats.inactive} products are currently inactive
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
-export default Listings
+export default Listings;
