@@ -16,6 +16,7 @@ import Orders from "./pages/dashboard/Orders";
 import Inventory from "./pages/dashboard/Inventory";
 import Listings from "./pages/dashboard/Listings";
 import Themes from "./pages/dashboard/Themes";
+import Website from "./pages/dashboard/Website";
 import Analytics from "./pages/dashboard/Analytics";
 import Marketing from "./pages/dashboard/Marketing";
 import WhatsApp from "./pages/dashboard/WhatsApp";
@@ -58,21 +59,22 @@ const App = () => (
               <Route path="inventory" element={<Inventory />} />
               <Route path="listings" element={<Listings />} />
               <Route path="themes" element={<Themes />} />
+              <Route path="website" element={<Website />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="marketing" element={<Marketing />} />
-            <Route path="whatsapp" element={<WhatsApp />} />
-            <Route path="payments" element={<Payments />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="business-reports" element={<BusinessReports />} />
-            <Route path="shipping-performance" element={<ShippingPerformance />} />
-            <Route path="delivery" element={<Delivery />} />
-            <Route path="returns" element={<Returns />} />
-            <Route path="claims" element={<Claims />} />
-            <Route path="coupons" element={<Coupons />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="support" element={<Support />} />
-            <Route path="reviews" element={<Reviews />} />
-            <Route path="documents" element={<Documents />} />
+              <Route path="whatsapp" element={<WhatsApp />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="business-reports" element={<BusinessReports />} />
+              <Route path="shipping-performance" element={<ShippingPerformance />} />
+              <Route path="delivery" element={<Delivery />} />
+              <Route path="returns" element={<Returns />} />
+              <Route path="claims" element={<Claims />} />
+              <Route path="coupons" element={<Coupons />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="support" element={<Support />} />
+              <Route path="reviews" element={<Reviews />} />
+              <Route path="documents" element={<Documents />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

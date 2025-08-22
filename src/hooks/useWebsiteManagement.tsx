@@ -195,8 +195,15 @@ export const useWebsiteManagement = () => {
       const { data, error } = await supabase
         .from('websites')
         .insert({
-          ...websiteData,
-          seller_id: sellerData.id
+          site_name: websiteData.site_name || '',
+          subdomain: websiteData.subdomain || '',
+          seller_id: sellerData.id,
+          seo_title: websiteData.seo_title,
+          seo_description: websiteData.seo_description,
+          contact_email: websiteData.contact_email,
+          contact_phone: websiteData.contact_phone,
+          is_active: websiteData.is_active || false,
+          ssl_enabled: websiteData.ssl_enabled || true
         })
         .select()
         .single();
@@ -295,10 +302,22 @@ export const useWebsiteManagement = () => {
     try {
       await updateWebsite(websiteId, { theme_id: themeId });
       
-      // Update theme downloads - use RPC or raw SQL for increment
-      const { error: themeError } = await supabase.rpc('increment_downloads', { theme_id: themeId });
+      // Update theme downloads manually since we can't use RPC yet
+      const { data: themeData, error: fetchError } = await supabase
+        .from('website_themes')
+        .select('downloads')
+        .eq('id', themeId)
+        .single();
 
-      if (themeError) console.error('Error updating theme downloads:', themeError);
+      if (!fetchError && themeData) {
+        const { error: themeError } = await supabase
+          .from('website_themes')
+          .update({ downloads: (themeData.downloads || 0) + 1 })
+          .eq('id', themeId);
+        
+        if (themeError) console.error('Error updating theme downloads:', themeError);
+      }
+
       
       toast.success('Theme applied successfully');
     } catch (error) {
