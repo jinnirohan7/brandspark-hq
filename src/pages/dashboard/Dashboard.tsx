@@ -35,7 +35,7 @@ import {
   Plus,
   Activity
 } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, LineChart, Line, CartesianGrid, BarChart, Bar } from 'recharts'
 import { useNavigate } from 'react-router-dom'
 
 const Dashboard = () => {
@@ -314,42 +314,51 @@ const Dashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={orderStatusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {orderStatusDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-            <div className="grid grid-cols-1 gap-3 mt-4">
+            <div className="space-y-4">
               {orderStatusDistribution.map((item) => (
-                <div key={item.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-sm font-medium">{item.name}</span>
+                <div key={item.name} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-sm font-medium">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-bold">{item.value}</span>
+                      <span className="text-xs text-muted-foreground ml-2">({item.percentage}%)</span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-bold">{item.value}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({item.percentage}%)</span>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full transition-all duration-300 ease-in-out"
+                      style={{ 
+                        width: `${item.percentage}%`, 
+                        backgroundColor: item.color 
+                      }}
+                    />
                   </div>
                 </div>
               ))}
+            </div>
+            
+            {/* Summary Stats */}
+            <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-foreground">
+                    {orderStatusDistribution.reduce((sum, item) => sum + item.value, 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Total Orders</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-green-600">
+                    {orderStatusDistribution.find(item => item.name === 'Delivered')?.percentage}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">Success Rate</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
