@@ -1004,6 +1004,390 @@ export type Database = {
         }
         Relationships: []
       }
+      website_analytics: {
+        Row: {
+          avg_session_duration: number | null
+          bounce_rate: number | null
+          conversion_rate: number | null
+          created_at: string
+          date: string
+          device_types: Json | null
+          id: string
+          page_views: number | null
+          revenue: number | null
+          top_pages: Json | null
+          traffic_sources: Json | null
+          unique_visitors: number | null
+          website_id: string
+        }
+        Insert: {
+          avg_session_duration?: number | null
+          bounce_rate?: number | null
+          conversion_rate?: number | null
+          created_at?: string
+          date: string
+          device_types?: Json | null
+          id?: string
+          page_views?: number | null
+          revenue?: number | null
+          top_pages?: Json | null
+          traffic_sources?: Json | null
+          unique_visitors?: number | null
+          website_id: string
+        }
+        Update: {
+          avg_session_duration?: number | null
+          bounce_rate?: number | null
+          conversion_rate?: number | null
+          created_at?: string
+          date?: string
+          device_types?: Json | null
+          id?: string
+          page_views?: number | null
+          revenue?: number | null
+          top_pages?: Json | null
+          traffic_sources?: Json | null
+          unique_visitors?: number | null
+          website_id?: string
+        }
+        Relationships: []
+      }
+      website_orders: {
+        Row: {
+          billing_address: Json | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          discount_amount: number | null
+          id: string
+          items: Json
+          notes: string | null
+          order_number: string
+          order_status: string | null
+          payment_method: string
+          payment_status: string | null
+          shipping_address: Json
+          shipping_cost: number | null
+          subtotal: number
+          tax_amount: number | null
+          total_amount: number
+          tracking_number: string | null
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          billing_address?: Json | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          discount_amount?: number | null
+          id?: string
+          items: Json
+          notes?: string | null
+          order_number: string
+          order_status?: string | null
+          payment_method: string
+          payment_status?: string | null
+          shipping_address: Json
+          shipping_cost?: number | null
+          subtotal: number
+          tax_amount?: number | null
+          total_amount: number
+          tracking_number?: string | null
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          billing_address?: Json | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          discount_amount?: number | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_number?: string
+          order_status?: string | null
+          payment_method?: string
+          payment_status?: string | null
+          shipping_address?: Json
+          shipping_cost?: number | null
+          subtotal?: number
+          tax_amount?: number | null
+          total_amount?: number
+          tracking_number?: string | null
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      website_pages: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_published: boolean | null
+          page_type: string
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          slug: string
+          title: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          page_type: string
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          page_type?: string
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: []
+      }
+      website_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          helpful_count: number | null
+          id: string
+          images: string[] | null
+          is_approved: boolean | null
+          is_verified: boolean | null
+          order_id: string | null
+          product_id: string | null
+          rating: number
+          title: string | null
+          videos: string[] | null
+          website_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          helpful_count?: number | null
+          id?: string
+          images?: string[] | null
+          is_approved?: boolean | null
+          is_verified?: boolean | null
+          order_id?: string | null
+          product_id?: string | null
+          rating: number
+          title?: string | null
+          videos?: string[] | null
+          website_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          helpful_count?: number | null
+          id?: string
+          images?: string[] | null
+          is_approved?: boolean | null
+          is_verified?: boolean | null
+          order_id?: string | null
+          product_id?: string | null
+          rating?: number
+          title?: string | null
+          videos?: string[] | null
+          website_id?: string
+        }
+        Relationships: []
+      }
+      website_themes: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          downloads: number | null
+          id: string
+          is_premium: boolean | null
+          name: string
+          preview_image_url: string | null
+          price: number | null
+          rating: number | null
+          template_data: Json
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          downloads?: number | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          price?: number | null
+          rating?: number | null
+          template_data: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          downloads?: number | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          price?: number | null
+          rating?: number | null
+          template_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      website_widgets: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+          preview_image_url: string | null
+          widget_config: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          widget_config: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          widget_config?: Json
+        }
+        Relationships: []
+      }
+      websites: {
+        Row: {
+          business_hours: Json | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          custom_css: string | null
+          domain_name: string | null
+          facebook_pixel_id: string | null
+          favicon_url: string | null
+          google_analytics_id: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          privacy_policy: string | null
+          return_policy: string | null
+          seller_id: string
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          shipping_info: Json | null
+          site_name: string
+          social_links: Json | null
+          ssl_enabled: boolean | null
+          subdomain: string
+          terms_of_service: string | null
+          theme_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_hours?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          custom_css?: string | null
+          domain_name?: string | null
+          facebook_pixel_id?: string | null
+          favicon_url?: string | null
+          google_analytics_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          privacy_policy?: string | null
+          return_policy?: string | null
+          seller_id: string
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          shipping_info?: Json | null
+          site_name: string
+          social_links?: Json | null
+          ssl_enabled?: boolean | null
+          subdomain: string
+          terms_of_service?: string | null
+          theme_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_hours?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          custom_css?: string | null
+          domain_name?: string | null
+          facebook_pixel_id?: string | null
+          favicon_url?: string | null
+          google_analytics_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          privacy_policy?: string | null
+          return_policy?: string | null
+          seller_id?: string
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          shipping_info?: Json | null
+          site_name?: string
+          social_links?: Json | null
+          ssl_enabled?: boolean | null
+          subdomain?: string
+          terms_of_service?: string | null
+          theme_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
