@@ -153,11 +153,25 @@ const Dashboard = () => {
   ]
 
   const orderStatusDistribution = [
-    { name: 'Delivered', value: 68, color: '#22c55e' },
-    { name: 'Processing', value: 18, color: '#3b82f6' },
-    { name: 'Shipped', value: 10, color: '#f59e0b' },
-    { name: 'Cancelled', value: 4, color: '#ef4444' }
+    { name: 'Delivered', value: 1847, percentage: 65, color: '#22c55e' },
+    { name: 'Processing', value: 512, percentage: 18, color: '#3b82f6' },
+    { name: 'Shipped', value: 284, percentage: 10, color: '#f59e0b' },
+    { name: 'Pending', value: 142, percentage: 5, color: '#f97316' },
+    { name: 'Cancelled', value: 57, percentage: 2, color: '#ef4444' }
   ]
+
+  // Alert actions
+  const handleLowStockAlert = () => {
+    navigate('/dashboard/inventory?filter=low-stock')
+  }
+
+  const handlePendingReviews = () => {
+    navigate('/dashboard/reviews?filter=pending')
+  }
+
+  const handleSalesTarget = () => {
+    navigate('/dashboard/analytics?view=sales-target')
+  }
 
   const chartConfig = {
     revenue: {
@@ -320,15 +334,20 @@ const Dashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
             </ChartContainer>
-            <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="grid grid-cols-1 gap-3 mt-4">
               {orderStatusDistribution.map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm">{item.name}</span>
-                  <span className="text-sm font-medium ml-auto">{item.value}%</span>
+                <div key={item.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-bold">{item.value}</span>
+                    <span className="text-xs text-muted-foreground ml-2">({item.percentage}%)</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -343,22 +362,25 @@ const Dashboard = () => {
           <CardDescription>Frequently used features and tools</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
             {quickActions.map((action) => (
-              <Button
+              <Card 
                 key={action.title}
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-accent transition-colors"
+                className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 border-2 hover:border-primary/20"
                 onClick={() => navigate(action.path)}
               >
-                <div className={`p-2 rounded-lg ${action.color} text-white`}>
-                  <action.icon className="h-5 w-5" />
-                </div>
-                <div className="text-center">
-                  <span className="text-sm font-medium block">{action.title}</span>
-                  <span className="text-xs text-muted-foreground">{action.description}</span>
-                </div>
-              </Button>
+                <CardContent className="p-4 text-center">
+                  <div className={`w-12 h-12 mx-auto mb-3 rounded-xl ${action.color} text-white flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
+                    <action.icon className="h-6 w-6" />
+                  </div>
+                  <h4 className="font-semibold text-sm mb-1 text-foreground group-hover:text-primary transition-colors">
+                    {action.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    {action.description}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </CardContent>
@@ -457,38 +479,50 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-              <Package className="h-8 w-8 text-orange-600" />
-              <div>
-                <h4 className="font-medium text-sm">Low Stock Items</h4>
-                <p className="text-xs text-muted-foreground">5 products running low</p>
-                <Button variant="link" size="sm" className="p-0 h-auto text-orange-600">
-                  Restock now
-                </Button>
-              </div>
-            </div>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-all duration-200 bg-orange-50 border-orange-200 border-2 hover:border-orange-300"
+              onClick={handleLowStockAlert}
+            >
+              <CardContent className="flex items-center gap-3 p-4">
+                <Package className="h-8 w-8 text-orange-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm text-orange-800">Low Stock Items</h4>
+                  <p className="text-xs text-orange-600">5 products running low</p>
+                  <p className="text-xs text-orange-500 mt-1">Click to manage inventory</p>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-orange-600" />
+              </CardContent>
+            </Card>
             
-            <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <MessageSquare className="h-8 w-8 text-blue-600" />
-              <div>
-                <h4 className="font-medium text-sm">Pending Reviews</h4>
-                <p className="text-xs text-muted-foreground">12 reviews to respond</p>
-                <Button variant="link" size="sm" className="p-0 h-auto text-blue-600">
-                  Respond now
-                </Button>
-              </div>
-            </div>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-all duration-200 bg-blue-50 border-blue-200 border-2 hover:border-blue-300"
+              onClick={handlePendingReviews}
+            >
+              <CardContent className="flex items-center gap-3 p-4">
+                <MessageSquare className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm text-blue-800">Pending Reviews</h4>
+                  <p className="text-xs text-blue-600">12 reviews to respond</p>
+                  <p className="text-xs text-blue-500 mt-1">Click to respond</p>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-blue-600" />
+              </CardContent>
+            </Card>
             
-            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <TrendingUp className="h-8 w-8 text-green-600" />
-              <div>
-                <h4 className="font-medium text-sm">Sales Target</h4>
-                <p className="text-xs text-muted-foreground">85% of monthly goal reached</p>
-                <Button variant="link" size="sm" className="p-0 h-auto text-green-600">
-                  View details
-                </Button>
-              </div>
-            </div>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-all duration-200 bg-green-50 border-green-200 border-2 hover:border-green-300"
+              onClick={handleSalesTarget}
+            >
+              <CardContent className="flex items-center gap-3 p-4">
+                <TrendingUp className="h-8 w-8 text-green-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm text-green-800">Sales Target</h4>
+                  <p className="text-xs text-green-600">85% of monthly goal reached</p>
+                  <p className="text-xs text-green-500 mt-1">Click for details</p>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-green-600" />
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>
