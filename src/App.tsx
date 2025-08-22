@@ -16,7 +16,7 @@ import Orders from "./pages/dashboard/Orders";
 import Inventory from "./pages/dashboard/Inventory";
 import Listings from "./pages/dashboard/Listings";
 import Themes from "./pages/dashboard/Themes";
-import Website from "./pages/dashboard/Website";
+
 import Analytics from "./pages/dashboard/Analytics";
 import Marketing from "./pages/dashboard/Marketing";
 import WhatsApp from "./pages/dashboard/WhatsApp";
@@ -59,7 +59,7 @@ const App = () => (
               <Route path="inventory" element={<Inventory />} />
               <Route path="listings" element={<Listings />} />
               <Route path="themes" element={<Themes />} />
-              <Route path="website" element={<Website />} />
+              
               <Route path="analytics" element={<Analytics />} />
               <Route path="marketing" element={<Marketing />} />
               <Route path="whatsapp" element={<WhatsApp />} />
