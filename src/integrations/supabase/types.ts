@@ -176,6 +176,53 @@ export type Database = {
           },
         ]
       }
+      ndrs: {
+        Row: {
+          auto_resolution_attempted: boolean | null
+          created_at: string
+          customer_response: string | null
+          id: string
+          ndr_reason: string
+          next_action: string | null
+          order_id: string
+          resolution_status: string | null
+          resolved_at: string | null
+          seller_id: string
+        }
+        Insert: {
+          auto_resolution_attempted?: boolean | null
+          created_at?: string
+          customer_response?: string | null
+          id?: string
+          ndr_reason: string
+          next_action?: string | null
+          order_id: string
+          resolution_status?: string | null
+          resolved_at?: string | null
+          seller_id: string
+        }
+        Update: {
+          auto_resolution_attempted?: boolean | null
+          created_at?: string
+          customer_response?: string | null
+          id?: string
+          ndr_reason?: string
+          next_action?: string | null
+          order_id?: string
+          resolution_status?: string | null
+          resolved_at?: string | null
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ndr_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -221,6 +268,91 @@ export type Database = {
           },
         ]
       }
+      order_notifications: {
+        Row: {
+          created_at: string
+          customer_response: string | null
+          id: string
+          message: string
+          notification_type: string
+          order_id: string
+          seller_id: string
+          sent_at: string | null
+          sent_via: string[] | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_response?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          order_id: string
+          seller_id: string
+          sent_at?: string | null
+          sent_via?: string[] | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_response?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          order_id?: string
+          seller_id?: string
+          sent_at?: string | null
+          sent_via?: string[] | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_notification_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_timeline: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_data: Json | null
+          event_description: string
+          event_type: string
+          id: string
+          order_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_data?: Json | null
+          event_description: string
+          event_type: string
+          id?: string
+          order_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_data?: Json | null
+          event_description?: string
+          event_type?: string
+          id?: string
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_timeline_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           courier_partner: string | null
@@ -228,9 +360,18 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone: string | null
+          delivery_attempts: number | null
+          delivery_instructions: string | null
+          duplicate_of: string | null
           estimated_delivery: string | null
+          expected_delivery_date: string | null
           id: string
+          is_duplicate: boolean | null
+          last_ndr_date: string | null
+          ndr_count: number | null
+          order_source: string | null
           payment_status: string | null
+          priority: string | null
           seller_id: string
           shipping_address: Json
           status: string | null
@@ -244,9 +385,18 @@ export type Database = {
           customer_email: string
           customer_name: string
           customer_phone?: string | null
+          delivery_attempts?: number | null
+          delivery_instructions?: string | null
+          duplicate_of?: string | null
           estimated_delivery?: string | null
+          expected_delivery_date?: string | null
           id?: string
+          is_duplicate?: boolean | null
+          last_ndr_date?: string | null
+          ndr_count?: number | null
+          order_source?: string | null
           payment_status?: string | null
+          priority?: string | null
           seller_id: string
           shipping_address: Json
           status?: string | null
@@ -260,9 +410,18 @@ export type Database = {
           customer_email?: string
           customer_name?: string
           customer_phone?: string | null
+          delivery_attempts?: number | null
+          delivery_instructions?: string | null
+          duplicate_of?: string | null
           estimated_delivery?: string | null
+          expected_delivery_date?: string | null
           id?: string
+          is_duplicate?: boolean | null
+          last_ndr_date?: string | null
+          ndr_count?: number | null
+          order_source?: string | null
           payment_status?: string | null
+          priority?: string | null
           seller_id?: string
           shipping_address?: Json
           status?: string | null
@@ -396,36 +555,105 @@ export type Database = {
           },
         ]
       }
+      return_policies: {
+        Row: {
+          auto_approve: boolean | null
+          conditions: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          policy_name: string
+          refund_percentage: number | null
+          require_qc: boolean | null
+          return_window_days: number
+          seller_id: string
+          shipping_charges_refundable: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          auto_approve?: boolean | null
+          conditions?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          policy_name: string
+          refund_percentage?: number | null
+          require_qc?: boolean | null
+          return_window_days?: number
+          seller_id: string
+          shipping_charges_refundable?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          auto_approve?: boolean | null
+          conditions?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          policy_name?: string
+          refund_percentage?: number | null
+          require_qc?: boolean | null
+          return_window_days?: number
+          seller_id?: string
+          shipping_charges_refundable?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       returns: {
         Row: {
+          courier_partner: string | null
           created_at: string
           id: string
           notes: string | null
           order_id: string
+          pickup_completed_at: string | null
+          pickup_scheduled_at: string | null
+          qc_notes: string | null
+          qc_status: string | null
           reason: string
           refund_amount: number | null
+          refund_processed_at: string | null
+          return_policy_id: string | null
+          return_tracking_number: string | null
           seller_id: string
           status: string | null
           updated_at: string
         }
         Insert: {
+          courier_partner?: string | null
           created_at?: string
           id?: string
           notes?: string | null
           order_id: string
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          qc_notes?: string | null
+          qc_status?: string | null
           reason: string
           refund_amount?: number | null
+          refund_processed_at?: string | null
+          return_policy_id?: string | null
+          return_tracking_number?: string | null
           seller_id: string
           status?: string | null
           updated_at?: string
         }
         Update: {
+          courier_partner?: string | null
           created_at?: string
           id?: string
           notes?: string | null
           order_id?: string
+          pickup_completed_at?: string | null
+          pickup_scheduled_at?: string | null
+          qc_notes?: string | null
+          qc_status?: string | null
           reason?: string
           refund_amount?: number | null
+          refund_processed_at?: string | null
+          return_policy_id?: string | null
+          return_tracking_number?: string | null
           seller_id?: string
           status?: string | null
           updated_at?: string
