@@ -248,7 +248,7 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Navigation */}
-      <div className="grid grid-cols-2 xs:grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4 mb-6 sm:mb-8">
         {quickActions.map((action) => (
           <Button
             key={action.title}
