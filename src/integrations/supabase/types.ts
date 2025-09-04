@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_suggestions: {
+        Row: {
+          applied: boolean | null
+          business_type: string
+          created_at: string
+          current_theme: Json
+          id: string
+          suggestions: Json
+          user_id: string
+        }
+        Insert: {
+          applied?: boolean | null
+          business_type: string
+          created_at?: string
+          current_theme: Json
+          id?: string
+          suggestions: Json
+          user_id: string
+        }
+        Update: {
+          applied?: boolean | null
+          business_type?: string
+          created_at?: string
+          current_theme?: Json
+          id?: string
+          suggestions?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
@@ -1004,6 +1034,76 @@ export type Database = {
         }
         Relationships: []
       }
+      theme_versions: {
+        Row: {
+          created_at: string
+          customizations_json: Json
+          id: string
+          user_theme_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          customizations_json?: Json
+          id?: string
+          user_theme_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          customizations_json?: Json
+          id?: string
+          user_theme_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theme_versions_user_theme_id_fkey"
+            columns: ["user_theme_id"]
+            isOneToOne: false
+            referencedRelation: "user_themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_themes: {
+        Row: {
+          created_at: string
+          customizations_json: Json
+          id: string
+          is_active: boolean | null
+          theme_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customizations_json?: Json
+          id?: string
+          is_active?: boolean | null
+          theme_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customizations_json?: Json
+          id?: string
+          is_active?: boolean | null
+          theme_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_themes_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "website_themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       website_analytics: {
         Row: {
           avg_session_duration: number | null
@@ -1230,11 +1330,14 @@ export type Database = {
           description: string | null
           downloads: number | null
           id: string
+          is_featured: boolean | null
           is_premium: boolean | null
+          layout_json: Json | null
           name: string
           preview_image_url: string | null
           price: number | null
           rating: number | null
+          tags: string[] | null
           template_data: Json
           updated_at: string
         }
@@ -1244,11 +1347,14 @@ export type Database = {
           description?: string | null
           downloads?: number | null
           id?: string
+          is_featured?: boolean | null
           is_premium?: boolean | null
+          layout_json?: Json | null
           name: string
           preview_image_url?: string | null
           price?: number | null
           rating?: number | null
+          tags?: string[] | null
           template_data: Json
           updated_at?: string
         }
@@ -1258,11 +1364,14 @@ export type Database = {
           description?: string | null
           downloads?: number | null
           id?: string
+          is_featured?: boolean | null
           is_premium?: boolean | null
+          layout_json?: Json | null
           name?: string
           preview_image_url?: string | null
           price?: number | null
           rating?: number | null
+          tags?: string[] | null
           template_data?: Json
           updated_at?: string
         }
