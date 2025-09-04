@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { ColorPicker } from 'react-color'
+import { SketchPicker } from 'react-color'
 import AceEditor from 'react-ace'
 import 'ace-builds/src-noconflict/mode-css'
 import 'ace-builds/src-noconflict/mode-javascript'
@@ -728,7 +728,7 @@ export const ProfessionalCustomizationPanel: React.FC<ProfessionalCustomizationP
               <CardTitle>Choose Color</CardTitle>
             </CardHeader>
             <CardContent>
-              <ColorPicker
+              <SketchPicker
                 color={customizations.colors[selectedColorField as keyof ColorScheme]}
                 onChange={(color) => handleColorChange(selectedColorField, color)}
               />

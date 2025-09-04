@@ -15,6 +15,7 @@ export interface Theme {
   is_featured: boolean
   rating: number
   downloads: number
+  created_at: string
 }
 
 export interface UserTheme {
@@ -28,11 +29,26 @@ export interface UserTheme {
 
 export interface AISuggestion {
   id: string
+  user_id?: string
   business_type: string
   current_theme: any
   suggestions: { items: string[] }
   applied: boolean
   created_at: string
+  type: 'color' | 'typography' | 'layout' | 'content' | 'performance' | 'accessibility' | 'seo' | 'conversion'
+  title: string
+  description: string
+  impact: 'low' | 'medium' | 'high'
+  effort: 'easy' | 'moderate' | 'complex'
+  confidence: number
+  changes: any
+  reasoning: string
+  examples?: string[]
+  before?: string
+  after?: string
+  liked?: boolean
+  feedback?: string
+  preview_data?: any
 }
 
 export const useThemeBuilder = () => {
@@ -248,11 +264,26 @@ export const useThemeBuilder = () => {
       // Transform data to match AISuggestion interface
       const transformedData = (data || []).map((item: any) => ({
         id: item.id,
+        user_id: item.user_id,
         business_type: item.business_type,
         current_theme: item.current_theme,
         suggestions: item.suggestions,
         applied: item.applied,
-        created_at: item.created_at
+        created_at: item.created_at,
+        type: (item.type || 'content') as 'color' | 'typography' | 'layout' | 'content' | 'performance' | 'accessibility' | 'seo' | 'conversion',
+        title: item.title || 'AI Suggestion',
+        description: item.description || 'Generated suggestion',
+        impact: (item.impact || 'medium') as 'low' | 'medium' | 'high',
+        effort: (item.effort || 'moderate') as 'easy' | 'moderate' | 'complex',
+        confidence: item.confidence || 0.8,
+        changes: item.changes || {},
+        reasoning: item.reasoning || 'AI-generated optimization suggestion',
+        examples: item.examples,
+        before: item.before,
+        after: item.after,
+        liked: item.liked,
+        feedback: item.feedback,
+        preview_data: item.preview_data
       }))
       
       setAiSuggestions(transformedData)
