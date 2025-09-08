@@ -127,22 +127,30 @@ export const AIThemeGenerator: React.FC<AIThemeGeneratorProps> = ({
   }
 
   const handleGenerateTheme = useCallback(async () => {
-    if (!selectedBusinessType) return
+    if (!selectedBusinessType) {
+      return
+    }
     
     setIsGenerating(true)
     try {
       await onGenerateTheme(selectedBusinessType, selectedThemeStyle, customPrompt)
+    } catch (error) {
+      console.error('Theme generation error:', error)
     } finally {
       setIsGenerating(false)
     }
   }, [selectedBusinessType, selectedThemeStyle, customPrompt, onGenerateTheme])
 
   const handleCustomGeneration = useCallback(async () => {
-    if (!customPrompt.trim()) return
+    if (!customPrompt.trim()) {
+      return
+    }
     
     setIsGenerating(true)
     try {
-      await onGenerateTheme(selectedBusinessType, 'custom', customPrompt)
+      await onGenerateTheme(selectedBusinessType || 'custom', 'custom', customPrompt)
+    } catch (error) {
+      console.error('Custom theme generation error:', error)
     } finally {
       setIsGenerating(false)
     }

@@ -16,21 +16,35 @@ serve(async (req) => {
   }
 
   try {
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      console.error('No authorization header provided')
+      throw new Error('No authorization header provided')
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     )
 
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      throw new Error('Unauthorized')
+    if (authError) {
+      console.error('Auth error:', authError)
+      throw new Error(`Authentication failed: ${authError.message}`)
     }
+    if (!user) {
+      console.error('No user found')
+      throw new Error('User not authenticated')
+    }
+
+    console.log('User authenticated:', user.id)
 
     const { business_type, current_theme, theme_style = 'modern', custom_prompt } = await req.json()
     
@@ -156,7 +170,11 @@ serve(async (req) => {
         changes: themeData,
         reasoning: `This ${theme_style} theme is specifically designed for ${business_type} businesses, featuring professional styling, responsive layout, and conversion-optimized components.`,
         examples: suggestions,
-        after: JSON.stringify(themeData, null, 2)
+        before: '',
+        after: JSON.stringify(themeData, null, 2),
+        liked: null,
+        feedback: null,
+        preview_data: themeData
       })
       .select()
       .single()

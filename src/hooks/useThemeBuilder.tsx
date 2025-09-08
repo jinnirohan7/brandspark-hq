@@ -213,6 +213,17 @@ export const useThemeBuilder = () => {
   // Generate AI theme
   const generateAITheme = async (businessType: string, themeStyle?: string, customPrompt?: string) => {
     try {
+      // Get the current session
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (!sessionData.session) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to generate themes',
+          variant: 'destructive'
+        })
+        return null
+      }
+
       const { data, error } = await supabase.functions.invoke('ai-theme-suggestions', {
         body: {
           business_type: businessType,
@@ -225,21 +236,32 @@ export const useThemeBuilder = () => {
         }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error generating AI theme:', error)
+        throw error
+      }
 
-      await fetchAISuggestions()
-      
-      toast({
-        title: 'Success',
-        description: 'AI theme generated successfully'
-      })
+      if (data?.success) {
+        toast({
+          title: 'Success',
+          description: 'AI theme generated successfully'
+        })
+        await fetchAISuggestions()
+      } else {
+        console.error('AI theme generation failed:', data)
+        toast({
+          title: 'Error',
+          description: data?.error || 'Failed to generate theme',
+          variant: 'destructive'
+        })
+      }
 
       return data
     } catch (error) {
       console.error('Error getting AI suggestions:', error)
       toast({
         title: 'Error',
-        description: 'Failed to generate AI theme',
+        description: `Failed to generate AI theme: ${error.message || 'Unknown error'}`,
         variant: 'destructive'
       })
       return null

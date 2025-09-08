@@ -16,30 +16,72 @@ export type Database = {
     Tables: {
       ai_suggestions: {
         Row: {
+          after: string | null
           applied: boolean | null
+          before: string | null
           business_type: string
+          changes: Json | null
+          confidence: number | null
           created_at: string
           current_theme: Json
+          description: string | null
+          effort: string | null
+          examples: Json | null
+          feedback: string | null
           id: string
+          impact: string | null
+          liked: boolean | null
+          preview_data: Json | null
+          reasoning: string | null
           suggestions: Json
+          title: string | null
+          type: string | null
           user_id: string
         }
         Insert: {
+          after?: string | null
           applied?: boolean | null
+          before?: string | null
           business_type: string
+          changes?: Json | null
+          confidence?: number | null
           created_at?: string
           current_theme: Json
+          description?: string | null
+          effort?: string | null
+          examples?: Json | null
+          feedback?: string | null
           id?: string
+          impact?: string | null
+          liked?: boolean | null
+          preview_data?: Json | null
+          reasoning?: string | null
           suggestions: Json
+          title?: string | null
+          type?: string | null
           user_id: string
         }
         Update: {
+          after?: string | null
           applied?: boolean | null
+          before?: string | null
           business_type?: string
+          changes?: Json | null
+          confidence?: number | null
           created_at?: string
           current_theme?: Json
+          description?: string | null
+          effort?: string | null
+          examples?: Json | null
+          feedback?: string | null
           id?: string
+          impact?: string | null
+          liked?: boolean | null
+          preview_data?: Json | null
+          reasoning?: string | null
           suggestions?: Json
+          title?: string | null
+          type?: string | null
           user_id?: string
         }
         Relationships: []
