@@ -133,18 +133,36 @@ export const useThemeBuilder = () => {
           .eq('id', existingUserTheme.id)
         
         if (error) throw error
+        
+        // Update current theme immediately
+        const updatedTheme = {
+          ...existingUserTheme,
+          is_active: true
+        }
+        setCurrentTheme(updatedTheme)
       } else {
+        // Get the theme details
+        const theme = themes.find(t => t.id === themeId)
+        
         // Create new user theme
-        const { error } = await supabase
+        const { data: newUserTheme, error } = await supabase
           .from('user_themes')
           .insert({
             user_id: user.id,
             theme_id: themeId,
-            customizations_json: {},
+            customizations_json: theme?.template_data || {},
             is_active: true
           })
+          .select()
+          .single()
         
         if (error) throw error
+        
+        // Set current theme immediately with theme details
+        setCurrentTheme({
+          ...newUserTheme,
+          theme: theme
+        })
       }
 
       // Increment theme downloads
@@ -154,7 +172,7 @@ export const useThemeBuilder = () => {
       
       toast({
         title: 'Success',
-        description: 'Theme applied successfully'
+        description: 'Theme applied successfully! You can now customize it.'
       })
     } catch (error) {
       console.error('Error applying theme:', error)

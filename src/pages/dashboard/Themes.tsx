@@ -9,6 +9,9 @@ import { ProfessionalCustomizationPanel } from '@/components/theme-builder/Profe
 import { AdvancedDragDropBuilder } from '@/components/theme-builder/AdvancedDragDropBuilder'
 import { AIThemeGenerator } from '@/components/theme-builder/AIThemeGenerator'
 import { CodeEmbedding } from '@/components/theme-builder/CodeEmbedding'
+import { ThemePreview } from '@/components/theme-builder/ThemePreview'
+import { MultiFrameworkCodeEditor } from '@/components/theme-builder/MultiFrameworkCodeEditor'
+import { AIIntegration } from '@/components/theme-builder/AIIntegration'
 import { 
   Eye, 
   Settings, 
@@ -17,7 +20,9 @@ import {
   Wand2,
   Layout,
   Download,
-  Save
+  Save,
+  Smartphone,
+  Bot
 } from 'lucide-react'
 
 const Themes = () => {
@@ -180,10 +185,10 @@ const Themes = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="library" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
-            Theme Library
+            Library
           </TabsTrigger>
           <TabsTrigger value="customize" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -191,15 +196,23 @@ const Themes = () => {
           </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Layout className="h-4 w-4" />
-            Drag & Drop
+            Builder
           </TabsTrigger>
           <TabsTrigger value="ai" className="flex items-center gap-2">
             <Wand2 className="h-4 w-4" />
-            AI Theme Generator
+            AI Generator
+          </TabsTrigger>
+          <TabsTrigger value="ai-chat" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            AI Chat
           </TabsTrigger>
           <TabsTrigger value="code" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
-            Custom Code
+            Code Editor
+          </TabsTrigger>
+          <TabsTrigger value="embed" className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4" />
+            Embed
           </TabsTrigger>
           <TabsTrigger value="preview" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
@@ -253,7 +266,32 @@ const Themes = () => {
           />
         </TabsContent>
 
+        <TabsContent value="ai-chat">
+          <AIIntegration
+            currentTheme={currentTheme}
+            onApplySuggestion={(suggestion) => {
+              if (suggestion.changes) {
+                const newCustomizations = {
+                  ...currentTheme?.customizations_json,
+                  ...suggestion.changes
+                }
+                updateCustomizations(newCustomizations)
+              }
+            }}
+            onGenerateTheme={generateAITheme}
+          />
+        </TabsContent>
+
         <TabsContent value="code">
+          <MultiFrameworkCodeEditor
+            theme={currentTheme}
+            onCodeUpdate={(code, framework, language) => {
+              console.log('Code updated:', { code, framework, language })
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="embed">
           <CodeEmbedding
             customCode={customCode}
             snippets={codeSnippets}
@@ -265,19 +303,13 @@ const Themes = () => {
         </TabsContent>
 
         <TabsContent value="preview">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Preview</CardTitle>
-              <CardDescription>
-                Preview your theme changes in real-time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">Theme preview will appear here</p>
-              </div>
-            </CardContent>
-          </Card>
+          <ThemePreview 
+            theme={currentTheme?.theme}
+            customizations={currentTheme?.customizations_json || defaultCustomizations}
+            layout={layoutData}
+            onApplyTheme={applyTheme}
+            onCustomize={() => setActiveTab('customize')}
+          />
         </TabsContent>
       </Tabs>
     </div>
