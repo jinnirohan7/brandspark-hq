@@ -28,7 +28,6 @@ import 'ace-builds/src-noconflict/mode-typescript'
 import 'ace-builds/src-noconflict/mode-jsx'
 import 'ace-builds/src-noconflict/mode-json'
 import 'ace-builds/src-noconflict/mode-sql'
-import 'ace-builds/src-noconflict/mode-graphql'
 import 'ace-builds/src-noconflict/theme-github'
 import 'ace-builds/src-noconflict/theme-monokai'
 import 'ace-builds/src-noconflict/theme-twilight'
@@ -79,7 +78,7 @@ export const MultiFrameworkCodeEditor: React.FC<MultiFrameworkCodeEditorProps> =
     nextjs: ['jsx', 'typescript', 'css'],
     nodejs: ['javascript', 'typescript'],
     html: ['html', 'css', 'javascript'],
-    graphql: ['graphql', 'javascript']
+    graphql: ['javascript', 'json']
   }
 
   const codeTemplates: CodeTemplate[] = [
@@ -427,171 +426,201 @@ app.listen(PORT, () => {
 })`,
       dependencies: ['express', 'cors', './config/supabase']
     },
-    {
-      id: 'graphql-schema',
-      name: 'GraphQL Schema',
-      framework: 'graphql',
-      language: 'graphql',
-      description: 'GraphQL schema for theme management',
-      code: `type Theme {
-  id: ID!
-  name: String!
-  category: String!
-  description: String
-  previewImageUrl: String
-  templateData: JSON
-  layoutJson: JSON
-  tags: [String!]
-  price: Float!
-  isFeatured: Boolean!
-  isPremium: Boolean
-  rating: Float!
-  downloads: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
+      {
+        id: 'graphql-schema',
+        name: 'GraphQL Schema',
+        framework: 'graphql',
+        language: 'javascript',
+        description: 'GraphQL schema for theme management with resolver implementation',
+        code: `// GraphQL Schema and Resolvers for Theme Management
+const { gql } = require('apollo-server-express')
 
-type UserTheme {
-  id: ID!
-  userId: ID!
-  themeId: ID!
-  theme: Theme!
-  customizationsJson: JSON!
-  isActive: Boolean!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
+// GraphQL Type Definitions
+const typeDefs = gql\`
+  type Theme {
+    id: ID!
+    name: String!
+    category: String!
+    description: String
+    previewImageUrl: String
+    templateData: JSON
+    layoutJson: JSON
+    tags: [String!]
+    price: Float!
+    isFeatured: Boolean!
+    isPremium: Boolean
+    rating: Float!
+    downloads: Int!
+    createdAt: String!
+    updatedAt: String!
+  }
 
-type Customizations {
-  colors: Colors
-  typography: Typography
-  spacing: Spacing
-  borderRadius: BorderRadius
-  shadows: Shadows
-  animation: Animation
-  layout: Layout
-  customCSS: String
-  customJS: String
-  darkMode: Boolean
-}
+  type UserTheme {
+    id: ID!
+    userId: ID!
+    themeId: ID!
+    theme: Theme!
+    customizationsJson: JSON!
+    isActive: Boolean!
+    createdAt: String!
+    updatedAt: String!
+  }
 
-type Colors {
-  primary: String
-  secondary: String
-  accent: String
-  background: String
-  foreground: String
-  muted: String
-  destructive: String
-  border: String
-}
+  type Query {
+    themes(
+      category: String
+      search: String
+      featured: Boolean
+      premium: Boolean
+      minRating: Float
+      maxPrice: Float
+      limit: Int
+      offset: Int
+    ): [Theme!]!
+    
+    theme(id: ID!): Theme
+    userThemes(userId: ID!): [UserTheme!]!
+    activeUserTheme(userId: ID!): UserTheme
+  }
 
-type Typography {
-  fontFamily: String
-  headingFont: String
-  bodyFont: String
-  baseFontSize: Int
-  lineHeight: Float
-  letterSpacing: Float
-  fontWeights: FontWeights
-}
+  type Mutation {
+    applyTheme(userId: ID!, themeId: ID!): UserTheme!
+    updateThemeCustomizations(
+      userThemeId: ID!
+      customizations: JSON!
+    ): UserTheme!
+  }
 
-type FontWeights {
-  light: Int
-  normal: Int
-  medium: Int
-  semibold: Int
-  bold: Int
-}
+  scalar JSON
+\`
 
-type Query {
-  themes(
-    category: String
-    search: String
-    featured: Boolean
-    premium: Boolean
-    minRating: Float
-    maxPrice: Float
-    limit: Int
-    offset: Int
-  ): [Theme!]!
-  
-  theme(id: ID!): Theme
-  
-  userThemes(userId: ID!): [UserTheme!]!
-  
-  activeUserTheme(userId: ID!): UserTheme
-}
+// GraphQL Resolvers
+const resolvers = {
+  Query: {
+    themes: async (_, args, { supabase }) => {
+      let query = supabase
+        .from('website_themes')
+        .select('*')
+        .order('is_featured', { ascending: false })
 
-type Mutation {
-  applyTheme(userId: ID!, themeId: ID!): UserTheme!
-  
-  updateThemeCustomizations(
-    userThemeId: ID!
-    customizations: CustomizationsInput!
-  ): UserTheme!
-  
-  createTheme(input: CreateThemeInput!): Theme!
-  
-  updateTheme(id: ID!, input: UpdateThemeInput!): Theme!
-  
-  deleteTheme(id: ID!): Boolean!
-}
+      if (args.category) {
+        query = query.eq('category', args.category)
+      }
+      if (args.featured !== undefined) {
+        query = query.eq('is_featured', args.featured)
+      }
+      if (args.premium !== undefined) {
+        query = query.eq('is_premium', args.premium)
+      }
+      if (args.minRating) {
+        query = query.gte('rating', args.minRating)
+      }
+      if (args.maxPrice) {
+        query = query.lte('price', args.maxPrice)
+      }
+      if (args.limit) {
+        query = query.limit(args.limit)
+      }
+      if (args.offset) {
+        query = query.range(args.offset, args.offset + (args.limit || 10) - 1)
+      }
 
-input CustomizationsInput {
-  colors: ColorsInput
-  typography: TypographyInput
-  spacing: SpacingInput
-  borderRadius: BorderRadiusInput
-  shadows: ShadowsInput
-  animation: AnimationInput
-  layout: LayoutInput
-  customCSS: String
-  customJS: String
-  darkMode: Boolean
-}
+      const { data, error } = await query
+      if (error) throw new Error(error.message)
+      return data || []
+    },
 
-input ColorsInput {
-  primary: String
-  secondary: String
-  accent: String
-  background: String
-  foreground: String
-  muted: String
-  destructive: String
-  border: String
-}
+    theme: async (_, { id }, { supabase }) => {
+      const { data, error } = await supabase
+        .from('website_themes')
+        .select('*')
+        .eq('id', id)
+        .single()
 
-input CreateThemeInput {
-  name: String!
-  category: String!
-  description: String
-  previewImageUrl: String
-  templateData: JSON
-  layoutJson: JSON
-  tags: [String!]
-  price: Float!
-  isFeatured: Boolean
-  isPremium: Boolean
-}
+      if (error) throw new Error(error.message)
+      return data
+    },
 
-input UpdateThemeInput {
-  name: String
-  category: String
-  description: String
-  previewImageUrl: String
-  templateData: JSON
-  layoutJson: JSON
-  tags: [String!]
-  price: Float
-  isFeatured: Boolean
-  isPremium: Boolean
-}
+    userThemes: async (_, { userId }, { supabase }) => {
+      const { data, error } = await supabase
+        .from('user_themes')
+        .select(\`
+          *,
+          theme:website_themes(*)
+        \`)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
 
-scalar JSON
-scalar DateTime`,
-      dependencies: ['graphql', 'apollo-server']
+      if (error) throw new Error(error.message)
+      return data || []
+    },
+
+    activeUserTheme: async (_, { userId }, { supabase }) => {
+      const { data, error } = await supabase
+        .from('user_themes')
+        .select(\`
+          *,
+          theme:website_themes(*)
+        \`)
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .single()
+
+      if (error) return null
+      return data
     }
+  },
+
+  Mutation: {
+    applyTheme: async (_, { userId, themeId }, { supabase }) => {
+      // Deactivate current themes
+      await supabase
+        .from('user_themes')
+        .update({ is_active: false })
+        .eq('user_id', userId)
+
+      // Apply new theme
+      const { data, error } = await supabase
+        .from('user_themes')
+        .insert({
+          user_id: userId,
+          theme_id: themeId,
+          customizations_json: {},
+          is_active: true
+        })
+        .select(\`
+          *,
+          theme:website_themes(*)
+        \`)
+        .single()
+
+      if (error) throw new Error(error.message)
+      return data
+    },
+
+    updateThemeCustomizations: async (_, { userThemeId, customizations }, { supabase }) => {
+      const { data, error } = await supabase
+        .from('user_themes')
+        .update({ 
+          customizations_json: customizations,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userThemeId)
+        .select(\`
+          *,
+          theme:website_themes(*)
+        \`)
+        .single()
+
+      if (error) throw new Error(error.message)
+      return data
+    }
+  }
+}
+
+module.exports = { typeDefs, resolvers }`,
+        dependencies: ['apollo-server-express', 'graphql']
+      }
   ]
 
   const handleCodeChange = (newCode: string) => {
