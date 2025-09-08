@@ -210,18 +210,18 @@ export const useThemeBuilder = () => {
     }
   }
 
-  // Get AI suggestions
-  const getAISuggestions = async (businessType: string) => {
+  // Generate AI theme
+  const generateAITheme = async (businessType: string, themeStyle?: string, customPrompt?: string) => {
     try {
-      if (!currentTheme) throw new Error('No active theme')
-
       const { data, error } = await supabase.functions.invoke('ai-theme-suggestions', {
         body: {
           business_type: businessType,
-          current_theme: {
+          theme_style: themeStyle || 'modern',
+          custom_prompt: customPrompt,
+          current_theme: currentTheme ? {
             theme: currentTheme.theme,
             customizations: currentTheme.customizations_json
-          }
+          } : null
         }
       })
 
@@ -231,7 +231,7 @@ export const useThemeBuilder = () => {
       
       toast({
         title: 'Success',
-        description: 'AI suggestions generated'
+        description: 'AI theme generated successfully'
       })
 
       return data
@@ -239,7 +239,7 @@ export const useThemeBuilder = () => {
       console.error('Error getting AI suggestions:', error)
       toast({
         title: 'Error',
-        description: 'Failed to get AI suggestions',
+        description: 'Failed to generate AI theme',
         variant: 'destructive'
       })
       return null
@@ -362,7 +362,7 @@ export const useThemeBuilder = () => {
     categories,
     applyTheme,
     updateCustomizations,
-    getAISuggestions,
+    generateAITheme,
     applyAISuggestion,
     refetch: () => Promise.all([fetchThemes(), fetchUserThemes(), fetchAISuggestions()])
   }

@@ -32,21 +32,22 @@ serve(async (req) => {
       throw new Error('Unauthorized')
     }
 
-    const { business_type, current_theme } = await req.json()
-
-    // Create prompt for AI suggestions
-    const prompt = `
-      Suggest 3 design improvements for a website theme.
-      Business Type: ${business_type}
-      Current Theme: ${JSON.stringify(current_theme)}
-      Focus on fonts, colors, layout, and style.
+    const { business_type, current_theme, theme_style = 'modern', custom_prompt } = await req.json()
+    
+    const prompt = custom_prompt || `
+      Generate a complete professional website theme for a ${business_type} business.
+      Theme Style: ${theme_style}
       
-      Return specific suggestions about:
-      1. Font combinations (font families and sizes)
-      2. Color palettes (primary, secondary, accent colors)
-      3. Layout improvements (spacing, alignment, sections)
+      Create a comprehensive theme with:
+      1. Complete color palette (primary, secondary, accent, neutral colors with hex codes)
+      2. Typography system (font families, sizes, weights for headings, body, buttons)
+      3. Layout structure (header, navigation, sections, footer)
+      4. Component styles (buttons, forms, cards, navigation)
+      5. Responsive design considerations
+      6. CSS custom properties and utility classes
       
-      Format as numbered list with actionable suggestions.
+      Return a structured JSON with theme data including colors, fonts, spacing, and CSS code.
+      Make it ready-to-use for a ${business_type} website with ${theme_style} design.
     `
 
     console.log('Calling HuggingFace API with prompt:', prompt.substring(0, 100) + '...')
@@ -75,47 +76,103 @@ serve(async (req) => {
     const data = await response.json()
     console.log('HuggingFace response:', data)
 
-    // Parse suggestions from AI response
+    // Parse theme data from AI response
+    let themeData = {}
     let suggestions = []
+    
     if (data && data[0] && data[0].generated_text) {
-      suggestions = data[0].generated_text
-        .split('\n')
-        .filter((line: string) => line.trim().length > 0)
-        .slice(0, 3) // Limit to 3 suggestions
+      const generatedText = data[0].generated_text
+      
+      // Try to parse as JSON first
+      try {
+        themeData = JSON.parse(generatedText)
+      } catch {
+        // If not JSON, treat as suggestions
+        suggestions = generatedText
+          .split('\n')
+          .filter((line: string) => line.trim().length > 0)
+          .slice(0, 5)
+      }
     }
 
-    // Fallback suggestions if AI doesn't provide good ones
-    if (suggestions.length === 0) {
+    // Generate complete theme if not provided
+    if (!themeData.colors) {
+      themeData = {
+        colors: {
+          primary: '#2563eb',
+          secondary: '#64748b',
+          accent: '#f59e0b',
+          background: '#ffffff',
+          foreground: '#1e293b'
+        },
+        typography: {
+          fontFamily: theme_style === 'modern' ? 'Inter, sans-serif' : 'Georgia, serif',
+          headingSize: { h1: '2.5rem', h2: '2rem', h3: '1.5rem' },
+          bodySize: '1rem'
+        },
+        layout: {
+          maxWidth: '1200px',
+          spacing: { xs: '0.5rem', sm: '1rem', md: '1.5rem', lg: '2rem' },
+          borderRadius: '0.5rem'
+        },
+        components: {
+          button: {
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            fontWeight: '600'
+          },
+          card: {
+            padding: '1.5rem',
+            borderRadius: '0.75rem',
+            shadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }
+        }
+      }
+      
       suggestions = [
-        `For ${business_type} business, consider using modern sans-serif fonts like Inter or Roboto`,
-        `Use a complementary color scheme with your brand colors as primary and neutral grays`,
-        `Implement better spacing with consistent margins and padding throughout sections`
+        `Complete ${theme_style} theme for ${business_type}`,
+        'Responsive design with modern components',
+        'Professional color palette and typography',
+        'Ready-to-use CSS custom properties',
+        'Optimized for conversions and user experience'
       ]
     }
 
-    // Save suggestions to database
-    const { data: savedSuggestion, error: saveError } = await supabase
+    // Save generated theme to database
+    const { data: savedTheme, error: saveError } = await supabase
       .from('ai_suggestions')
       .insert({
         user_id: user.id,
         business_type,
-        current_theme,
+        current_theme: themeData,
         suggestions: { items: suggestions },
-        applied: false
+        applied: false,
+        type: 'layout',
+        title: `${theme_style.charAt(0).toUpperCase() + theme_style.slice(1)} ${business_type} Theme`,
+        description: `AI-generated ${theme_style} theme optimized for ${business_type} businesses`,
+        impact: 'high',
+        effort: 'easy',
+        confidence: 0.9,
+        changes: themeData,
+        reasoning: `This ${theme_style} theme is specifically designed for ${business_type} businesses, featuring professional styling, responsive layout, and conversion-optimized components.`,
+        examples: suggestions,
+        after: JSON.stringify(themeData, null, 2)
       })
       .select()
       .single()
 
     if (saveError) {
-      console.error('Error saving suggestions:', saveError)
+      console.error('Error saving theme:', saveError)
       throw saveError
     }
 
-    console.log('Suggestions saved successfully:', savedSuggestion.id)
+    console.log('Theme saved successfully:', savedTheme.id)
 
     return new Response(JSON.stringify({
+      theme: themeData,
       suggestions: suggestions,
-      suggestion_id: savedSuggestion.id
+      theme_id: savedTheme.id,
+      success: true
     }), { 
       headers: { ...corsHeaders, "Content-Type": "application/json" }, 
       status: 200 
@@ -125,7 +182,8 @@ serve(async (req) => {
     console.error('Error in ai-theme-suggestions function:', error)
     return new Response(JSON.stringify({ 
       error: error.message || 'Internal server error',
-      suggestions: []
+      suggestions: [],
+      success: false
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }, 
       status: 500,

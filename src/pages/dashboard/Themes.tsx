@@ -7,7 +7,7 @@ import { useThemeBuilder } from '@/hooks/useThemeBuilder'
 import { EnhancedThemeLibrary } from '@/components/theme-builder/EnhancedThemeLibrary'
 import { ProfessionalCustomizationPanel } from '@/components/theme-builder/ProfessionalCustomizationPanel'
 import { AdvancedDragDropBuilder } from '@/components/theme-builder/AdvancedDragDropBuilder'
-import { AdvancedAISuggestions } from '@/components/theme-builder/AdvancedAISuggestions'
+import { AIThemeGenerator } from '@/components/theme-builder/AIThemeGenerator'
 import { CodeEmbedding } from '@/components/theme-builder/CodeEmbedding'
 import { 
   Eye, 
@@ -36,7 +36,7 @@ const Themes = () => {
     categories,
     applyTheme,
     updateCustomizations,
-    getAISuggestions,
+    generateAITheme,
     applyAISuggestion
   } = useThemeBuilder()
 
@@ -195,7 +195,7 @@ const Themes = () => {
           </TabsTrigger>
           <TabsTrigger value="ai" className="flex items-center gap-2">
             <Wand2 className="h-4 w-4" />
-            AI Suggestions
+            AI Theme Generator
           </TabsTrigger>
           <TabsTrigger value="code" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
@@ -244,12 +244,10 @@ const Themes = () => {
         </TabsContent>
 
         <TabsContent value="ai">
-          <AdvancedAISuggestions
-            suggestions={aiSuggestions}
-            currentTheme={currentTheme}
-            businessType="E-commerce"
-            onGetSuggestions={getAISuggestions}
-            onApplySuggestion={applyAISuggestion}
+          <AIThemeGenerator
+            themes={aiSuggestions}
+            onGenerateTheme={generateAITheme}
+            onApplyTheme={applyAISuggestion}
             onFeedback={handleAISuggestionFeedback}
             loading={loading}
           />
