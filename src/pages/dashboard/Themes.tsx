@@ -269,16 +269,18 @@ const Themes = () => {
         <TabsContent value="ai-chat">
           <AIIntegration
             currentTheme={currentTheme}
-            onApplySuggestion={(suggestion) => {
-              if (suggestion.changes) {
+            onApplyChanges={(changes) => {
+              if (currentTheme) {
                 const newCustomizations = {
-                  ...currentTheme?.customizations_json,
-                  ...suggestion.changes
+                  ...currentTheme.customizations_json,
+                  ...changes
                 }
                 updateCustomizations(newCustomizations)
               }
             }}
-            onGenerateTheme={generateAITheme}
+            onGenerateSuggestions={(type) => {
+              generateAITheme('general', type)
+            }}
           />
         </TabsContent>
 
