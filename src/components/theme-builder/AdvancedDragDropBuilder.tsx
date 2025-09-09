@@ -40,7 +40,10 @@ import {
   Zap,
   Crown,
   Link,
-  Upload
+  Upload,
+  Star,
+  Mail,
+  Users
 } from 'lucide-react'
 
 interface Component {
@@ -110,12 +113,12 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     { type: 'gallery', name: 'Gallery', icon: <ImageIcon className="h-4 w-4" /> },
     { type: 'carousel', name: 'Carousel', icon: <RotateCw className="h-4 w-4" /> },
     { type: 'hero', name: 'Hero Section', icon: <Layers className="h-4 w-4" /> },
-    { type: 'testimonial', name: 'Testimonial', icon: <Type className="h-4 w-4" /> },
+    { type: 'testimonial', name: 'Testimonial', icon: <Star className="h-4 w-4" /> },
     { type: 'pricing', name: 'Pricing Table', icon: <Grid3X3 className="h-4 w-4" /> },
-    { type: 'team', name: 'Team Member', icon: <Type className="h-4 w-4" /> },
-    { type: 'feature', name: 'Feature Block', icon: <Type className="h-4 w-4" /> },
-    { type: 'newsletter', name: 'Newsletter', icon: <Type className="h-4 w-4" /> },
-    { type: 'footer', name: 'Footer', icon: <Type className="h-4 w-4" /> }
+    { type: 'team', name: 'Team Member', icon: <Users className="h-4 w-4" /> },
+    { type: 'feature', name: 'Feature Block', icon: <Zap className="h-4 w-4" /> },
+    { type: 'newsletter', name: 'Newsletter', icon: <Mail className="h-4 w-4" /> },
+    { type: 'footer', name: 'Footer', icon: <Layout className="h-4 w-4" /> }
   ]
 
   // Pre-built templates with complete layouts
@@ -535,102 +538,76 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     setHistoryIndex(newHistory.length - 1)
   }, [layout, onLayoutUpdate, history, historyIndex])
 
-  const updateComponent = useCallback((componentId: string, updates: Partial<Component>) => {
-    const newLayout = layout.map(section => ({
-      ...section,
-      components: section.components.map(component => 
-        component.id === componentId 
-          ? { ...component, ...updates }
-          : component
-      )
-    }))
-    
-    onLayoutUpdate(newLayout)
-    
-    if (selectedComponent?.id === componentId) {
-      setSelectedComponent({ ...selectedComponent, ...updates })
-    }
-  }, [layout, onLayoutUpdate, selectedComponent])
-
   const onDragEnd = useCallback((result: DropResult) => {
-    const { destination, source, draggableId } = result
+    if (!result.destination) return
 
-    if (!destination) return
+    const { source, destination } = result
 
-    // Handle component palette drag
+    // Handle dragging from component palette to sections
     if (source.droppableId === 'component-palette') {
-      const componentType = draggableId as Component['type']
-      const sectionId = destination.droppableId
-      addComponent(sectionId, componentType)
+      const componentType = componentTypes[source.index].type
+      addComponent(destination.droppableId, componentType)
+      toast.success(`${componentTypes[source.index].name} added to section`)
       return
     }
 
     // Handle reordering within the same section
     if (source.droppableId === destination.droppableId) {
       const sectionId = source.droppableId
-      const newLayout = layout.map(section => {
-        if (section.id === sectionId) {
-          const newComponents = Array.from(section.components)
-          const [reorderedItem] = newComponents.splice(source.index, 1)
-          newComponents.splice(destination.index, 0, reorderedItem)
-          
-          return {
-            ...section,
-            components: newComponents
-          }
-        }
-        return section
-      })
+      const section = layout.find(s => s.id === sectionId)
+      if (!section) return
+
+      const newComponents = Array.from(section.components)
+      const [reorderedItem] = newComponents.splice(source.index, 1)
+      newComponents.splice(destination.index, 0, reorderedItem)
+
+      const newLayout = layout.map(s => 
+        s.id === sectionId 
+          ? { ...s, components: newComponents }
+          : s
+      )
       
       onLayoutUpdate(newLayout)
+      
+      // Add to history
+      const newHistory = history.slice(0, historyIndex + 1)
+      newHistory.push(newLayout)
+      setHistory(newHistory)
+      setHistoryIndex(newHistory.length - 1)
+      return
     }
+
+    // Handle moving components between sections
+    const sourceSection = layout.find(s => s.id === source.droppableId)
+    const destSection = layout.find(s => s.id === destination.droppableId)
     
-    // Handle moving between sections
-    if (source.droppableId !== destination.droppableId) {
-      const newLayout = layout.map(section => {
-        if (section.id === source.droppableId) {
-          const newComponents = Array.from(section.components)
-          newComponents.splice(source.index, 1)
-          return {
-            ...section,
-            components: newComponents
-          }
-        }
-        
-        if (section.id === destination.droppableId) {
-          const sourceSection = layout.find(s => s.id === source.droppableId)
-          const componentToMove = sourceSection?.components[source.index]
-          
-          if (componentToMove) {
-            const newComponents = Array.from(section.components)
-            newComponents.splice(destination.index, 0, componentToMove)
-            return {
-              ...section,
-              components: newComponents
-            }
-          }
-        }
-        
-        return section
-      })
-      
-      onLayoutUpdate(newLayout)
-    }
-  }, [layout, onLayoutUpdate, addComponent])
+    if (!sourceSection || !destSection) return
 
-  const undo = useCallback(() => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1)
-      onLayoutUpdate(history[historyIndex - 1])
-    }
-  }, [historyIndex, history, onLayoutUpdate])
+    const sourceComponents = Array.from(sourceSection.components)
+    const [movedComponent] = sourceComponents.splice(source.index, 1)
+    
+    const destComponents = Array.from(destSection.components)
+    destComponents.splice(destination.index, 0, movedComponent)
 
-  const redo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1)
-      onLayoutUpdate(history[historyIndex + 1])
-    }
-  }, [historyIndex, history, onLayoutUpdate])
+    const newLayout = layout.map(section => {
+      if (section.id === source.droppableId) {
+        return { ...section, components: sourceComponents }
+      }
+      if (section.id === destination.droppableId) {
+        return { ...section, components: destComponents }
+      }
+      return section
+    })
+    
+    onLayoutUpdate(newLayout)
+    toast.success('Component moved successfully')
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, componentTypes, addComponent, history, historyIndex])
 
   const applyTemplate = useCallback((template: typeof templates[0]) => {
     onLayoutUpdate(template.sections)
@@ -679,647 +656,694 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     }
   }, [customDomain])
 
-  const previewDimensions = useMemo(() => {
-    switch (previewMode) {
-      case 'tablet':
-        return { width: '768px', maxWidth: '768px' }
-      case 'mobile':
-        return { width: '375px', maxWidth: '375px' }
-      default:
-        return { width: '100%', maxWidth: '1200px' }
-    }
-  }, [previewMode])
+  const ComponentRenderer: React.FC<{ component: Component; isPreview: boolean }> = ({ 
+    component, 
+    isPreview 
+  }) => {
+    const currentStyles = component.responsive?.[previewMode] || component.styles
 
-  const ComponentRenderer: React.FC<{ component: Component; isEditMode: boolean }> = ({ component, isEditMode }) => {
-    if (isEditMode) {
-      return (
-        <Card className="border-dashed border-2 border-muted-foreground/20 hover:border-primary/50 transition-colors">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {component.icon}
-                <span className="text-sm font-medium">{component.name}</span>
+    if (isPreview) {
+      // Render actual functional components in preview mode
+      switch (component.type) {
+        case 'text':
+          const TextTag = component.content.tag || 'p'
+          return (
+            <TextTag 
+              style={{
+                ...currentStyles,
+                fontSize: currentStyles.fontSize || '16px',
+                color: currentStyles.color || 'hsl(var(--foreground))',
+                fontWeight: currentStyles.fontWeight || 'normal',
+                textAlign: currentStyles.textAlign || 'left'
+              }}
+              className="w-full"
+            >
+              {component.content.text}
+            </TextTag>
+          )
+
+        case 'image':
+          return (
+            <img 
+              src={component.content.src} 
+              alt={component.content.alt}
+              style={{
+                ...currentStyles,
+                maxWidth: '100%',
+                height: 'auto'
+              }}
+              className="w-full object-cover"
+            />
+          )
+
+        case 'button':
+          return (
+            <Button 
+              variant={component.content.variant || 'default'}
+              style={{
+                ...currentStyles,
+                backgroundColor: currentStyles.backgroundColor || undefined
+              }}
+              className="transition-all duration-200 hover:scale-105"
+              onClick={() => {
+                if (component.content.link && component.content.link !== '#') {
+                  window.open(component.content.link, '_blank')
+                }
+              }}
+            >
+              {component.content.text}
+            </Button>
+          )
+
+        case 'product-card':
+          return (
+            <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="aspect-square overflow-hidden">
+                <img 
+                  src={component.content.image}
+                  alt={component.content.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedComponent(component)}
-                >
-                  <Settings className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const section = layout.find(s => s.components.some(c => c.id === component.id))
-                    if (section) duplicateComponent(section.id, component.id)
-                  }}
-                >
-                  <Copy className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const section = layout.find(s => s.components.some(c => c.id === component.id))
-                    if (section) deleteComponent(section.id, component.id)
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-2">{component.content.title}</h3>
+                <p className="text-muted-foreground mb-2">{component.content.description}</p>
+                <p className="text-xl font-bold text-primary">{component.content.price}</p>
+              </CardContent>
+            </Card>
+          )
+
+        case 'hero':
+          return (
+            <div 
+              className="relative w-full min-h-[400px] flex items-center justify-center bg-cover bg-center"
+              style={{
+                backgroundImage: component.content.backgroundImage ? `url(${component.content.backgroundImage})` : undefined,
+                backgroundColor: currentStyles.backgroundColor || 'hsl(var(--primary))',
+                color: currentStyles.color || 'white',
+                padding: currentStyles.padding || '80px 20px'
+              }}
+            >
+              <div className="absolute inset-0 bg-black/30"></div>
+              <div className="relative z-10 text-center max-w-4xl mx-auto">
+                <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                  {component.content.title}
+                </h1>
+                <p className="text-xl md:text-2xl mb-8 opacity-90">
+                  {component.content.subtitle}
+                </p>
+                {component.content.ctaText && (
+                  <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
+                    {component.content.ctaText}
+                  </Button>
+                )}
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <ComponentPreview component={component} />
-          </CardContent>
-        </Card>
-      )
-    }
+          )
 
-    return <ComponentPreview component={component} />
-  }
+        case 'form':
+          return (
+            <Card className="p-6">
+              <form className="space-y-4">
+                {component.content.fields?.map((field: any, index: number) => (
+                  <div key={index} className="space-y-2">
+                    <Label htmlFor={field.name}>{field.label}</Label>
+                    <Input 
+                      id={field.name}
+                      type={field.type}
+                      required={field.required}
+                      placeholder={field.placeholder || field.label}
+                    />
+                  </div>
+                ))}
+                <Button type="submit" className="w-full">
+                  {component.content.submitText}
+                </Button>
+              </form>
+            </Card>
+          )
 
-  const ComponentPreview: React.FC<{ component: Component }> = ({ component }) => {
-    const currentContent = component.responsive?.[previewMode] || component.content
-    
-    switch (component.type) {
-      case 'text':
-        return (
-          <div style={component.styles}>
-            {React.createElement(
-              currentContent.tag || 'p',
-              { style: component.styles },
-              currentContent.text
-            )}
-          </div>
-        )
-      case 'image':
-        return (
-          <img 
-            src={currentContent.src} 
-            alt={currentContent.alt}
-            style={{ ...component.styles, display: 'block' }}
-          />
-        )
-      case 'button':
-        return (
-          <Button 
-            variant={currentContent.variant === 'primary' ? 'default' : 'outline'}
-            style={component.styles}
-          >
-            {currentContent.text}
-          </Button>
-        )
-      case 'hero':
-        return (
-          <div 
-            className="relative bg-cover bg-center min-h-[400px] flex items-center justify-center text-white"
-            style={{ 
-              backgroundImage: `url(${currentContent.backgroundImage})`,
-              ...component.styles 
-            }}
-          >
-            <div className="text-center space-y-4 bg-black/50 p-8 rounded-lg">
-              <h1 className="text-4xl font-bold">{currentContent.title}</h1>
-              <p className="text-xl">{currentContent.subtitle}</p>
-              <Button size="lg">{currentContent.ctaText}</Button>
+        case 'gallery':
+          return (
+            <div 
+              className="grid gap-4"
+              style={{
+                gridTemplateColumns: `repeat(${component.content.columns || 3}, 1fr)`
+              }}
+            >
+              {component.content.images?.map((src: string, index: number) => (
+                <img 
+                  key={index}
+                  src={src}
+                  alt={`Gallery image ${index + 1}`}
+                  className="w-full h-48 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+                />
+              ))}
             </div>
-          </div>
-        )
-      default:
-        return (
-          <div style={component.styles} className="p-4 border rounded">
-            <span className="text-muted-foreground">{component.name}</span>
-          </div>
-        )
+          )
+
+        case 'testimonial':
+          return (
+            <Card className="p-6 text-center">
+              <blockquote className="text-lg italic mb-4">
+                "{component.content.quote}"
+              </blockquote>
+              <div className="flex items-center justify-center gap-3">
+                <img 
+                  src={component.content.avatar}
+                  alt={component.content.author}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <div>
+                  <p className="font-semibold">{component.content.author}</p>
+                  <p className="text-sm text-muted-foreground">{component.content.position}</p>
+                </div>
+              </div>
+            </Card>
+          )
+
+        case 'pricing':
+          return (
+            <div className="grid md:grid-cols-2 gap-6">
+              {component.content.plans?.map((plan: any, index: number) => (
+                <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
+                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                  <p className="text-3xl font-bold text-primary mb-4">{plan.price}</p>
+                  <ul className="space-y-2 mb-6">
+                    {plan.features?.map((feature: string, featureIndex: number) => (
+                      <li key={featureIndex} className="text-muted-foreground">
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button className="w-full">Choose Plan</Button>
+                </Card>
+              ))}
+            </div>
+          )
+
+        default:
+          return (
+            <div 
+              style={currentStyles}
+              className="p-4 bg-muted/50 border border-dashed border-muted-foreground/25 rounded-lg"
+            >
+              <p className="text-center text-muted-foreground">
+                {component.type} component
+              </p>
+            </div>
+          )
+      }
     }
+
+    // Edit mode - show component cards with controls
+    return (
+      <Card 
+        className={`p-3 border-2 transition-all cursor-pointer hover:shadow-md ${
+          selectedComponent?.id === component.id 
+            ? 'border-primary bg-primary/5' 
+            : 'border-border hover:border-primary/50'
+        }`}
+        onClick={() => setSelectedComponent(component)}
+      >
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {component.icon}
+            <span className="font-medium text-sm">{component.name}</span>
+          </div>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                // Handle settings
+              }}
+            >
+              <Settings className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                const sectionId = layout.find(s => 
+                  s.components.some(c => c.id === component.id)
+                )?.id
+                if (sectionId) duplicateComponent(sectionId, component.id)
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation()
+                const sectionId = layout.find(s => 
+                  s.components.some(c => c.id === component.id)
+                )?.id
+                if (sectionId) deleteComponent(sectionId, component.id)
+              }}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {component.type} • Click to edit
+        </div>
+      </Card>
+    )
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar with tabs */}
-      <div className="w-80 border-r bg-muted/30 overflow-y-auto">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="h-full">
-          <TabsList className="grid w-full grid-cols-3 m-4 mb-0">
-            <TabsTrigger value="components" className="text-xs">
-              <Grid3X3 className="h-3 w-3 mr-1" />
-              Blocks
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="text-xs">
-              <Layout className="h-3 w-3 mr-1" />
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="publishing" className="text-xs">
-              <Globe className="h-3 w-3 mr-1" />
-              Publish
-            </TabsTrigger>
-          </TabsList>
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex h-screen bg-background">
+        {/* Sidebar with tabs */}
+        <div className="w-80 border-r bg-muted/30 overflow-y-auto">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="h-full">
+            <TabsList className="grid w-full grid-cols-3 m-4 mb-0">
+              <TabsTrigger value="components" className="text-xs">
+                <Grid3X3 className="h-3 w-3 mr-1" />
+                Blocks
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="text-xs">
+                <Layout className="h-3 w-3 mr-1" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger value="publishing" className="text-xs">
+                <Globe className="h-3 w-3 mr-1" />
+                Publish
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="components" className="p-4 space-y-4 mt-0">
-            <div>
-              <h3 className="font-semibold mb-3">Drag & Drop Components</h3>
-              <DragDropContext onDragEnd={() => {}}>
-                <Droppable droppableId="component-palette" isDropDisabled>
+            <TabsContent value="components" className="space-y-4">
+              {/* Component Palette */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  Drag Components
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Drag any component below into your website sections
+                </p>
+                <Droppable droppableId="component-palette" isDropDisabled={true}>
                   {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef}>
-                      <div className="grid grid-cols-2 gap-2">
-                        {componentTypes.map((component, index) => (
-                          <Draggable
-                            key={component.type}
-                            draggableId={component.type}
-                            index={index}
-                          >
-                            {(provided, snapshot) => (
-                              <Card
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`cursor-grab active:cursor-grabbing transition-transform hover:bg-muted/50 ${
-                                  snapshot.isDragging ? 'scale-105 shadow-lg' : ''
-                                }`}
-                              >
-                                <CardContent className="p-3">
-                                  <div className="flex flex-col items-center gap-2 text-center">
-                                    {component.icon}
-                                    <span className="text-xs font-medium">{component.name}</span>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            )}
-                          </Draggable>
-                        ))}
-                      </div>
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="grid grid-cols-2 gap-3"
+                    >
+                      {componentTypes.map((component, index) => (
+                        <Draggable
+                          key={component.type}
+                          draggableId={component.type}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`p-3 border border-border rounded-lg cursor-grab active:cursor-grabbing hover:shadow-md transition-all flex flex-col items-center gap-2 text-center ${
+                                snapshot.isDragging 
+                                  ? 'shadow-lg border-primary bg-primary/5 rotate-3 scale-105' 
+                                  : 'hover:border-primary/50 hover:scale-105'
+                              }`}
+                            >
+                              <div className="text-primary">
+                                {component.icon}
+                              </div>
+                              <span className="text-xs font-medium">{component.name}</span>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
                       {provided.placeholder}
                     </div>
                   )}
                 </Droppable>
-              </DragDropContext>
-            </div>
+              </Card>
+            </TabsContent>
 
-            <Separator />
-
-            {/* Settings Panel */}
-            {selectedComponent && (
+            <TabsContent value="templates" className="p-4 space-y-4 mt-0">
               <div>
-                <h3 className="font-semibold mb-3">Component Settings</h3>
-                <ComponentSettings 
-                  component={selectedComponent}
-                  onUpdate={updateComponent}
-                />
+                <h3 className="font-semibold mb-3">Ready-to-Use Templates</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Choose a template to get started quickly
+                </p>
+                <div className="space-y-3">
+                  {templates.map((template) => (
+                    <Card key={template.id} className="hover:bg-muted/50 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
+                            <Layout className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm">{template.name}</h4>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {template.description}
+                            </p>
+                            <Badge variant="secondary" className="mt-2 text-xs">
+                              {template.category}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full mt-3"
+                          onClick={() => applyTemplate(template)}
+                        >
+                          <Zap className="h-3 w-3 mr-1" />
+                          Apply Template
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="templates" className="p-4 space-y-4 mt-0">
-            <div>
-              <h3 className="font-semibold mb-3">Ready-to-Use Templates</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Choose a template to get started quickly
-              </p>
-              <div className="space-y-3">
-                {templates.map((template) => (
-                  <Card key={template.id} className="hover:bg-muted/50 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
-                          <Layout className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm">{template.name}</h4>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {template.description}
-                          </p>
-                          <Badge variant="secondary" className="mt-2 text-xs">
-                            {template.category}
-                          </Badge>
-                        </div>
-                      </div>
+            <TabsContent value="publishing" className="p-4 space-y-6 mt-0">
+              <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Publish & Host
+                </h3>
+                
+                {/* Free Hosting */}
+                <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="h-4 w-4 text-green-600" />
+                      <span className="font-medium text-green-700 dark:text-green-300">Free Hosting</span>
+                    </div>
+                    <p className="text-xs text-green-600 dark:text-green-400 mb-3">
+                      Your site will be hosted for free on sellsphere.app
+                    </p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full">
+                          <Globe className="h-3 w-3 mr-2" />
+                          Quick Publish
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Publish Your Website</DialogTitle>
+                          <DialogDescription>
+                            Your website will be live instantly with free hosting
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Button 
+                          onClick={publishWebsite}
+                          disabled={isPublishing}
+                        >
+                          {isPublishing ? (
+                            <>
+                              <Upload className="h-3 w-3 mr-2 animate-spin" />
+                              Publishing...
+                            </>
+                          ) : (
+                            <>
+                              <Globe className="h-3 w-3 mr-2" />
+                              Publish Now
+                            </>
+                          )}
+                        </Button>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+
+                {/* Custom Domain */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Crown className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium">Custom Domain</span>
+                      <Badge variant="secondary" className="text-xs">Premium</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Connect your own domain for a professional look
+                    </p>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="yourdomain.com"
+                        value={customDomain}
+                        onChange={(e) => setCustomDomain(e.target.value)}
+                      />
                       <Button 
+                        variant="outline" 
                         size="sm" 
-                        className="w-full mt-3"
-                        onClick={() => applyTemplate(template)}
+                        className="w-full"
+                        onClick={connectDomain}
                       >
-                        <Zap className="h-3 w-3 mr-1" />
-                        Apply Template
+                        <Link className="h-3 w-3 mr-2" />
+                        Connect Domain
                       </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="publishing" className="p-4 space-y-6 mt-0">
-            <div>
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Publish & Host
-              </h3>
-              
-              {/* Free Hosting */}
-              <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-700 dark:text-green-300">Free Hosting</span>
-                  </div>
-                  <p className="text-xs text-green-600 dark:text-green-400 mb-3">
-                    Your site will be hosted for free on sellsphere.app
-                  </p>
-                  <Button 
-                    className="w-full" 
-                    onClick={publishWebsite}
-                    disabled={isPublishing}
-                  >
-                    {isPublishing ? (
-                      <>
-                        <Upload className="h-3 w-3 mr-2 animate-spin" />
-                        Publishing...
-                      </>
-                    ) : (
-                      <>
-                        <Globe className="h-3 w-3 mr-2" />
-                        Publish Website
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Custom Domain */}
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="h-4 w-4 text-amber-600" />
-                    <span className="font-medium">Custom Domain</span>
-                    <Badge variant="secondary" className="text-xs">Premium</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Connect your own domain for a professional look
-                  </p>
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="yourdomain.com"
-                      value={customDomain}
-                      onChange={(e) => setCustomDomain(e.target.value)}
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={connectDomain}
-                    >
-                      <Link className="h-3 w-3 mr-2" />
-                      Connect Domain
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* SEO & Analytics */}
-              <Card>
-                <CardContent className="p-4">
-                  <h4 className="font-medium mb-2">SEO & Analytics</h4>
-                  <div className="space-y-2 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      Automatic sitemap generation
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      Mobile-responsive design
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      SSL certificate included
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      Google Analytics ready
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Main Canvas */}
-      <div className="flex-1 flex flex-col">
-        {/* Toolbar */}
-        <div className="border-b p-4 bg-background">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={undo}
-                disabled={historyIndex <= 0}
-              >
-                <Undo className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={redo}
-                disabled={historyIndex >= history.length - 1}
-              >
-                <Redo className="h-4 w-4" />
-              </Button>
-              
-              <Separator orientation="vertical" className="h-6" />
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={previewMode === 'desktop' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPreviewMode('desktop')}
-                >
-                  <Monitor className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={previewMode === 'tablet' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPreviewMode('tablet')}
-                >
-                  <Tablet className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={previewMode === 'mobile' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPreviewMode('mobile')}
-                >
-                  <Smartphone className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <Separator orientation="vertical" className="h-6" />
-              
-              <Button
-                variant={isPreview ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setIsPreview(!isPreview)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                {isPreview ? 'Edit' : 'Preview'}
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
-              </Button>
-              <Button variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Export Code
-              </Button>
-              <Button onClick={addSection} size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Section
-              </Button>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Globe className="mr-2 h-4 w-4" />
-                    Quick Publish
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Publish Your Website</DialogTitle>
-                    <DialogDescription>
-                      Your website will be published instantly on sellsphere hosting with a free SSL certificate.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="text-sm">
-                      <strong>Your site will be available at:</strong>
-                      <div className="bg-muted p-2 rounded mt-1 font-mono text-xs">
-                        https://site-{Date.now()}.sellsphere.app
-                      </div>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={publishWebsite}
-                      disabled={isPublishing}
-                    >
-                      {isPublishing ? 'Publishing...' : 'Publish Now'}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* Canvas */}
-        <div className="flex-1 overflow-auto p-4">
+        {/* Main Canvas */}
+        <div className="flex-1 space-y-4">
+          {/* Toolbar */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Preview Mode Toggle */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={isPreview ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsPreview(!isPreview)}
+                    className="flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {isPreview ? 'Exit Preview' : 'Preview'}
+                  </Button>
+                </div>
+
+                {/* Device Preview */}
+                <div className="flex items-center border rounded-lg">
+                  <Button
+                    variant={previewMode === 'desktop' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('desktop')}
+                    className="rounded-r-none"
+                  >
+                    <Monitor className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={previewMode === 'tablet' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('tablet')}
+                    className="rounded-none"
+                  >
+                    <Tablet className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={previewMode === 'mobile' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('mobile')}
+                    className="rounded-l-none"
+                  >
+                    <Smartphone className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Grid Settings */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Grid:</Label>
+                  <Select value={gridSize.toString()} onValueChange={(value) => setGridSize(Number(value))}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">12</SelectItem>
+                      <SelectItem value="16">16</SelectItem>
+                      <SelectItem value="24">24</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (historyIndex > 0) {
+                      setHistoryIndex(historyIndex - 1)
+                      onLayoutUpdate(history[historyIndex - 1])
+                    }
+                  }}
+                  disabled={historyIndex === 0}
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (historyIndex < history.length - 1) {
+                      setHistoryIndex(historyIndex + 1)
+                      onLayoutUpdate(history[historyIndex + 1])
+                    }
+                  }}
+                  disabled={historyIndex === history.length - 1}
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addSection}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Section
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Website Canvas */}
           <div 
-            className="mx-auto transition-all duration-300"
-            style={previewDimensions}
+            className={`mx-auto transition-all duration-300 ${
+              previewMode === 'desktop' ? 'max-w-full' :
+              previewMode === 'tablet' ? 'max-w-3xl' :
+              'max-w-sm'
+            }`}
           >
-            <DragDropContext onDragEnd={onDragEnd}>
-              <div className="space-y-4">
-                {layout.map((section) => (
-                  <Card key={section.id} className="border-2 border-dashed border-muted">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{section.name}</CardTitle>
-                        <Badge variant="secondary">
-                          {section.components.length} component{section.components.length !== 1 ? 's' : ''}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
+            <div className="bg-background border border-border rounded-lg overflow-hidden shadow-lg">
+              {layout.length === 0 ? (
+                <div className="h-96 flex items-center justify-center bg-muted/20">
+                  <div className="text-center">
+                    <Layout className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Start Building</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Add your first section to begin creating your website
+                    </p>
+                    <Button onClick={addSection}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Section
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {layout.map((section, sectionIndex) => (
+                    <div key={section.id} className="relative group">
                       <Droppable droppableId={section.id}>
                         {(provided, snapshot) => (
                           <div
                             {...provided.droppableProps}
                             ref={provided.innerRef}
-                            className={`min-h-[100px] space-y-4 p-4 rounded-lg transition-colors ${
-                              snapshot.isDraggingOver ? 'bg-primary/10' : 'bg-muted/30'
+                            className={`min-h-[100px] transition-all ${
+                              snapshot.isDraggingOver 
+                                ? 'bg-primary/10 border-2 border-primary border-dashed' 
+                                : 'border-transparent border-2'
                             }`}
+                            style={{
+                              ...section.styles,
+                              backgroundColor: section.styles?.backgroundColor || 'transparent'
+                            }}
                           >
-                            {section.components.length === 0 && (
-                              <div className="text-center text-muted-foreground py-8">
-                                <Type className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                <p>Drag components here</p>
+                            {!isPreview && (
+                              <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Badge variant="secondary" className="text-xs">
+                                  {section.name}
+                                </Badge>
                               </div>
                             )}
                             
-                            {section.components.map((component, index) => (
-                              <Draggable
-                                key={component.id}
-                                draggableId={component.id}
-                                index={index}
-                                isDragDisabled={isPreview}
+                            {!isPreview && (
+                              <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    const newLayout = layout.filter(s => s.id !== section.id)
+                                    onLayoutUpdate(newLayout)
+                                    toast.success('Section deleted')
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+
+                            {section.components.length === 0 ? (
+                              <div className={`h-24 flex items-center justify-center border-2 border-dashed mx-4 my-4 rounded-lg transition-all ${
+                                snapshot.isDraggingOver 
+                                  ? 'border-primary bg-primary/5 border-solid' 
+                                  : 'border-muted-foreground/25'
+                              }`}>
+                                <p className="text-muted-foreground text-sm">
+                                  {snapshot.isDraggingOver ? 'Drop component here' : 'Drop components here'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div 
+                                className={`grid gap-4 p-4 ${
+                                  section.gridCols === 1 ? 'grid-cols-1' :
+                                  section.gridCols === 2 ? 'grid-cols-1 md:grid-cols-2' :
+                                  section.gridCols === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
+                                  section.gridCols === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' :
+                                  'grid-cols-1'
+                                }`}
                               >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className={`transition-transform ${
-                                      snapshot.isDragging ? 'scale-105 shadow-lg' : ''
-                                    }`}
+                                {section.components.map((component, index) => (
+                                  <Draggable
+                                    key={component.id}
+                                    draggableId={component.id}
+                                    index={index}
+                                    isDragDisabled={isPreview}
                                   >
-                                    <ComponentRenderer
-                                      component={component}
-                                      isEditMode={!isPreview}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`transition-all ${
+                                          snapshot.isDragging 
+                                            ? 'shadow-lg rotate-2 scale-105 z-50' 
+                                            : ''
+                                        }`}
+                                      >
+                                        <ComponentRenderer 
+                                          component={component} 
+                                          isPreview={isPreview}
+                                        />
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                              </div>
+                            )}
                             {provided.placeholder}
                           </div>
                         )}
                       </Droppable>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {layout.length === 0 && (
-                  <div className="text-center py-12">
-                    <Type className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-medium mb-2">Start Building</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Add your first section to get started
-                    </p>
-                    <Button onClick={addSection}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Section
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </DragDropContext>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-const ComponentSettings: React.FC<{
-  component: Component
-  onUpdate: (componentId: string, updates: Partial<Component>) => void
-}> = ({ component, onUpdate }) => {
-  return (
-    <div className="space-y-4">
-      <Tabs defaultValue="content">
-        <TabsList className="w-full">
-          <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="styles">Styles</TabsTrigger>
-          <TabsTrigger value="responsive">Responsive</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="content" className="space-y-3">
-          {component.type === 'text' && (
-            <>
-              <div>
-                <Label htmlFor="text">Text Content</Label>
-                <Input
-                  id="text"
-                  value={component.content.text}
-                  onChange={(e) => onUpdate(component.id, {
-                    content: { ...component.content, text: e.target.value }
-                  })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="tag">HTML Tag</Label>
-                <Select
-                  value={component.content.tag}
-                  onValueChange={(value) => onUpdate(component.id, {
-                    content: { ...component.content, tag: value }
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="p">Paragraph</SelectItem>
-                    <SelectItem value="h1">Heading 1</SelectItem>
-                    <SelectItem value="h2">Heading 2</SelectItem>
-                    <SelectItem value="h3">Heading 3</SelectItem>
-                    <SelectItem value="span">Span</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
-          
-          {component.type === 'button' && (
-            <>
-              <div>
-                <Label htmlFor="buttonText">Button Text</Label>
-                <Input
-                  id="buttonText"
-                  value={component.content.text}
-                  onChange={(e) => onUpdate(component.id, {
-                    content: { ...component.content, text: e.target.value }
-                  })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="buttonLink">Link URL</Label>
-                <Input
-                  id="buttonLink"
-                  value={component.content.link}
-                  onChange={(e) => onUpdate(component.id, {
-                    content: { ...component.content, link: e.target.value }
-                  })}
-                />
-              </div>
-            </>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="styles" className="space-y-3">
-          <div>
-            <Label htmlFor="width">Width</Label>
-            <Input
-              id="width"
-              value={component.styles.width}
-              onChange={(e) => onUpdate(component.id, {
-                styles: { ...component.styles, width: e.target.value }
-              })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="padding">Padding</Label>
-            <Input
-              id="padding"
-              value={component.styles.padding}
-              onChange={(e) => onUpdate(component.id, {
-                styles: { ...component.styles, padding: e.target.value }
-              })}
-            />
-          </div>
-          <div>
-            <Label htmlFor="backgroundColor">Background Color</Label>
-            <Input
-              id="backgroundColor"
-              type="color"
-              value={component.styles.backgroundColor || '#ffffff'}
-              onChange={(e) => onUpdate(component.id, {
-                styles: { ...component.styles, backgroundColor: e.target.value }
-              })}
-            />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="responsive">
-          <p className="text-sm text-muted-foreground">
-            Configure responsive behavior for different screen sizes
-          </p>
-        </TabsContent>
-      </Tabs>
-    </div>
+    </DragDropContext>
   )
 }
