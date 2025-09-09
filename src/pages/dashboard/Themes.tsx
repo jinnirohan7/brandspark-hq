@@ -5,10 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useThemeBuilder } from '@/hooks/useThemeBuilder'
 import { EnhancedThemeLibrary } from '@/components/theme-builder/EnhancedThemeLibrary'
-import { ProfessionalCustomizationPanel } from '@/components/theme-builder/ProfessionalCustomizationPanel'
 import { AdvancedDragDropBuilder } from '@/components/theme-builder/AdvancedDragDropBuilder'
-import { AIThemeGenerator } from '@/components/theme-builder/AIThemeGenerator'
-import { CodeEmbedding } from '@/components/theme-builder/CodeEmbedding'
 import { ThemePreview } from '@/components/theme-builder/ThemePreview'
 import { MultiFrameworkCodeEditor } from '@/components/theme-builder/MultiFrameworkCodeEditor'
 import { AIIntegration } from '@/components/theme-builder/AIIntegration'
@@ -173,10 +170,10 @@ const Themes = () => {
                 </Button>
                 <Button 
                   size="sm"
-                  onClick={() => setActiveTab('customize')}
+                  onClick={() => setActiveTab('builder')}
                 >
                   <Settings className="mr-2 h-4 w-4" />
-                  Customize
+                  Builder
                 </Button>
               </div>
             </div>
@@ -185,22 +182,14 @@ const Themes = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="library" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             Library
           </TabsTrigger>
-          <TabsTrigger value="customize" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Customize
-          </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Layout className="h-4 w-4" />
             Builder
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-2">
-            <Wand2 className="h-4 w-4" />
-            AI Generator
           </TabsTrigger>
           <TabsTrigger value="ai-chat" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
@@ -209,10 +198,6 @@ const Themes = () => {
           <TabsTrigger value="code" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
             Code Editor
-          </TabsTrigger>
-          <TabsTrigger value="embed" className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            Embed
           </TabsTrigger>
           <TabsTrigger value="preview" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
@@ -236,33 +221,11 @@ const Themes = () => {
           />
         </TabsContent>
 
-        <TabsContent value="customize">
-          <ProfessionalCustomizationPanel
-            currentTheme={currentTheme}
-            customizations={currentTheme?.customizations_json || defaultCustomizations}
-            onUpdateCustomizations={updateCustomizations}
-            onResetToDefault={() => updateCustomizations(defaultCustomizations)}
-            onSave={() => console.log('Saving customizations...')}
-            onExport={() => console.log('Exporting theme...')}
-            onImport={(file) => console.log('Importing theme...', file)}
-          />
-        </TabsContent>
-
         <TabsContent value="builder">
           <AdvancedDragDropBuilder
             layout={layoutData}
             onLayoutUpdate={setLayoutData}
             currentTheme={currentTheme}
-          />
-        </TabsContent>
-
-        <TabsContent value="ai">
-          <AIThemeGenerator
-            themes={aiSuggestions}
-            onGenerateTheme={generateAITheme}
-            onApplyTheme={applyAISuggestion}
-            onFeedback={handleAISuggestionFeedback}
-            loading={loading}
           />
         </TabsContent>
 
@@ -293,16 +256,6 @@ const Themes = () => {
           />
         </TabsContent>
 
-        <TabsContent value="embed">
-          <CodeEmbedding
-            customCode={customCode}
-            snippets={codeSnippets}
-            integrations={integrations}
-            onUpdateCustomCode={setCustomCode}
-            onUpdateSnippets={setCodeSnippets}
-            onUpdateIntegrations={setIntegrations}
-          />
-        </TabsContent>
 
         <TabsContent value="preview">
           <ThemePreview 
@@ -310,7 +263,7 @@ const Themes = () => {
             customizations={currentTheme?.customizations_json || defaultCustomizations}
             layout={layoutData}
             onApplyTheme={applyTheme}
-            onCustomize={() => setActiveTab('customize')}
+            onCustomize={() => setActiveTab('builder')}
           />
         </TabsContent>
       </Tabs>
