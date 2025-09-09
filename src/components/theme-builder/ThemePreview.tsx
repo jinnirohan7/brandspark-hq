@@ -21,16 +21,20 @@ interface ThemePreviewProps {
   theme: any
   customizations?: any
   layout?: any[]
+  previewHtml?: string
   onApplyTheme?: (themeId: string) => void
   onCustomize?: () => void
+  onCustomizationChange?: (customizations: any) => void
 }
 
 export const ThemePreview: React.FC<ThemePreviewProps> = ({
   theme,
   customizations,
   layout,
+  previewHtml,
   onApplyTheme,
-  onCustomize
+  onCustomize,
+  onCustomizationChange
 }) => {
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [activeTab, setActiveTab] = useState('preview')

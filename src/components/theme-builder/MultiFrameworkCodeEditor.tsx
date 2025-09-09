@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AceEditor from 'react-ace'
+import { EnhancedCodeEditor } from './EnhancedCodeEditor'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -56,6 +57,7 @@ export const MultiFrameworkCodeEditor: React.FC<MultiFrameworkCodeEditorProps> =
   initialFramework = 'react',
   theme
 }) => {
+  const [showEnhancedEditor, setShowEnhancedEditor] = useState(false)
   const [activeFramework, setActiveFramework] = useState(initialFramework)
   const [activeLanguage, setActiveLanguage] = useState('javascript')
   const [code, setCode] = useState(initialCode)

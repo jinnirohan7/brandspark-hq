@@ -8,6 +8,7 @@ import { EnhancedThemeLibrary } from '@/components/theme-builder/EnhancedThemeLi
 import { AdvancedDragDropBuilder } from '@/components/theme-builder/AdvancedDragDropBuilder'
 import { ThemePreview } from '@/components/theme-builder/ThemePreview'
 import { MultiFrameworkCodeEditor } from '@/components/theme-builder/MultiFrameworkCodeEditor'
+import { EnhancedCodeEditor } from '@/components/theme-builder/EnhancedCodeEditor'
 import { AIIntegration } from '@/components/theme-builder/AIIntegration'
 import { 
   Eye, 
@@ -248,11 +249,14 @@ const Themes = () => {
         </TabsContent>
 
         <TabsContent value="code">
-          <MultiFrameworkCodeEditor
-            theme={currentTheme}
-            onCodeUpdate={(code, framework, language) => {
-              console.log('Code updated:', { code, framework, language })
+          <EnhancedCodeEditor
+            onCodeUpdate={(code, filename) => {
+              console.log('Code updated:', { code, filename })
             }}
+            onPreviewUpdate={(html) => {
+              console.log('Preview updated with HTML:', html)
+            }}
+            theme={currentTheme?.theme?.template_data || defaultCustomizations}
           />
         </TabsContent>
 
