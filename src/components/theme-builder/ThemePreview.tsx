@@ -9,12 +9,12 @@ import {
   Tablet, 
   Smartphone, 
   Eye, 
-  Code, 
-  Settings,
+  Code,
   Fullscreen,
   RotateCcw,
   Download,
-  Share2
+  Share2,
+  Settings
 } from 'lucide-react'
 
 interface ThemePreviewProps {
@@ -39,6 +39,7 @@ export const ThemePreview: React.FC<ThemePreviewProps> = ({
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const [activeTab, setActiveTab] = useState('preview')
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showBuilderPreview, setShowBuilderPreview] = useState(false)
 
   const getPreviewDimensions = () => {
     switch (viewMode) {
@@ -48,6 +49,94 @@ export const ThemePreview: React.FC<ThemePreviewProps> = ({
         return { width: '375px', height: '812px' }
       default:
         return { width: '100%', height: '600px' }
+    }
+  }
+
+  const renderBuilderPreview = () => {
+    if (previewHtml) {
+      return (
+        <iframe
+          srcDoc={previewHtml}
+          className="w-full h-full border-0"
+          style={getPreviewDimensions()}
+          title="Website Preview"
+        />
+      )
+    }
+
+    if (layout && layout.length > 0) {
+      return (
+        <div 
+          className="w-full h-full overflow-auto border rounded-lg bg-background"
+          style={getPreviewDimensions()}
+        >
+          {layout.map((section: any) => (
+            <div
+              key={section.id}
+              className="w-full"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: viewMode === 'mobile' ? '1fr' : 
+                                   viewMode === 'tablet' ? 'repeat(2, 1fr)' : 
+                                   `repeat(${section.gridCols || 12}, 1fr)`,
+                gap: '1rem',
+                padding: '1rem',
+                ...section.styles
+              }}
+            >
+              {section.components?.map((component: any) => (
+                <div
+                  key={component.id}
+                  className="component-preview"
+                  dangerouslySetInnerHTML={{ 
+                    __html: renderComponentAsHtml(component, viewMode) 
+                  }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex items-center justify-center h-96 bg-muted/30 rounded-lg border-2 border-dashed">
+        <div className="text-center">
+          <div className="text-4xl mb-4">🏗️</div>
+          <h3 className="text-lg font-semibold mb-2">No Content Yet</h3>
+          <p className="text-muted-foreground">Start building in the Builder tab to see your website here</p>
+        </div>
+      </div>
+    )
+  }
+
+  const renderComponentAsHtml = (component: any, mode: string) => {
+    const styles = component.styles || {}
+    const content = component.content || {}
+    
+    switch (component.type) {
+      case 'text':
+        return `<${content.tag || 'p'} style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')}">${content.text || 'Text content'}</${content.tag || 'p'}>`
+      
+      case 'image':
+        return `<img src="${content.src || '/api/placeholder/400/300'}" alt="${content.alt || 'Image'}" style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} max-width: 100%; height: auto;" />`
+      
+      case 'button':
+        return `<button style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} cursor: pointer; border: none; padding: 12px 24px; border-radius: 6px; background: ${customizations?.colors?.primary || '#3b82f6'}; color: white;">${content.text || 'Button'}</button>`
+      
+      case 'hero':
+        return `
+          <div style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} position: relative; background-image: url('${content.backgroundImage || ''}'); background-size: cover; background-position: center; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center; color: white;">
+            <div style="background: rgba(0,0,0,0.4); padding: 2rem; border-radius: 8px; max-width: 600px;">
+              <h1 style="font-size: ${mode === 'mobile' ? '2rem' : '3rem'}; margin-bottom: 1rem; font-weight: bold;">${content.title || 'Hero Title'}</h1>
+              <p style="font-size: ${mode === 'mobile' ? '1rem' : '1.25rem'}; margin-bottom: 2rem; opacity: 0.9;">${content.subtitle || 'Hero subtitle'}</p>
+              <button style="padding: 12px 24px; background: ${customizations?.colors?.primary || '#3b82f6'}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">${content.ctaText || 'Call to Action'}</button>
+            </div>
+          </div>
+        `
+      
+      default:
+        return `<div style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} padding: 1rem; border: 1px dashed #ccc; text-align: center; background: #f9f9f9;">${component.type} component</div>`
     }
   }
 
@@ -296,16 +385,27 @@ body {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Eye className="h-4 w-4" />
-                Theme Preview
+                Website Preview
                 {theme?.name && <Badge variant="secondary">{theme.name}</Badge>}
               </CardTitle>
             </div>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-                <TabsTrigger value="code">Code</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex items-center gap-2">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="preview">Theme Preview</TabsTrigger>
+                  <TabsTrigger value="builder">Builder Preview</TabsTrigger>
+                  <TabsTrigger value="code">Code</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBuilderPreview(!showBuilderPreview)}
+              >
+                <Eye className="mr-1 h-3 w-3" />
+                {showBuilderPreview ? 'Theme' : 'Builder'} View
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -313,6 +413,11 @@ body {
             <TabsContent value="preview" className="mt-0">
               <div className="flex justify-center">
                 {renderThemePreview()}
+              </div>
+            </TabsContent>
+            <TabsContent value="builder" className="mt-0">
+              <div className="flex justify-center">
+                {renderBuilderPreview()}
               </div>
             </TabsContent>
             <TabsContent value="code" className="mt-0">

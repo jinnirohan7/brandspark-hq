@@ -101,10 +101,13 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
   const [snapToGrid, setSnapToGrid] = useState(true)
   const [history, setHistory] = useState<Section[][]>([layout])
   const [historyIndex, setHistoryIndex] = useState(0)
-  const [activeTab, setActiveTab] = useState<'components' | 'templates' | 'publishing'>('components')
+  const [activeTab, setActiveTab] = useState<'components' | 'templates' | 'custom' | 'publishing'>('components')
   const [customDomain, setCustomDomain] = useState('')
   const [isPublishing, setIsPublishing] = useState(false)
   const [showComponentEditor, setShowComponentEditor] = useState(false)
+  const [customComponents, setCustomComponents] = useState<Component[]>([])
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState('')
 
   const componentTypes: Omit<Component, 'id' | 'content' | 'styles'>[] = [
     { type: 'text', name: 'Text Block', icon: <Type className="h-4 w-4" /> },

@@ -9,6 +9,7 @@ import { AdvancedDragDropBuilder } from '@/components/theme-builder/AdvancedDrag
 import { ThemePreview } from '@/components/theme-builder/ThemePreview'
 import { MultiFrameworkCodeEditor } from '@/components/theme-builder/MultiFrameworkCodeEditor'
 import { EnhancedCodeEditor } from '@/components/theme-builder/EnhancedCodeEditor'
+import { CustomComponentBuilder } from '@/components/theme-builder/CustomComponentBuilder'
 import { AIIntegration } from '@/components/theme-builder/AIIntegration'
 import { 
   Eye, 
@@ -54,6 +55,8 @@ const Themes = () => {
   })
   const [codeSnippets, setCodeSnippets] = useState([])
   const [integrations, setIntegrations] = useState([])
+  const [customComponents, setCustomComponents] = useState([])
+  const [generatedHtml, setGeneratedHtml] = useState('')
   
   const defaultCustomizations = {
     colors: {
@@ -124,8 +127,81 @@ const Themes = () => {
     setPreviewTheme(theme)
   }
 
+  const generateBuilderHtml = (layout) => {
+    if (!layout || layout.length === 0) return
+
+    const sections = layout.map(section => {
+      const components = section.components?.map((component) => {
+        return renderComponentAsHtml(component)
+      }).join('') || ''
+
+      return `
+        <section style="display: grid; grid-template-columns: repeat(${section.gridCols || 12}, 1fr); gap: 1rem; padding: 1rem; ${section.styles ? Object.entries(section.styles).map(([k, v]) => `${k}: ${v}`).join('; ') : ''}">
+          ${components}
+        </section>
+      `
+    }).join('')
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Generated Website</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { 
+            font-family: ${defaultCustomizations?.typography?.fontFamily || 'Inter, sans-serif'};
+            background-color: ${defaultCustomizations?.colors?.background || '#ffffff'};
+            color: ${defaultCustomizations?.colors?.foreground || '#000000'};
+            line-height: 1.6;
+          }
+          @media (max-width: 768px) {
+            section { grid-template-columns: 1fr !important; }
+          }
+        </style>
+      </head>
+      <body>
+        ${sections}
+      </body>
+      </html>
+    `
+    
+    setGeneratedHtml(html)
+  }
+
+  const renderComponentAsHtml = (component) => {
+    const styles = component.styles || {}
+    const content = component.content || {}
+    
+    switch (component.type) {
+      case 'text':
+        return `<${content.tag || 'p'} style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')}">${content.text || 'Text content'}</${content.tag || 'p'}>`
+      
+      case 'image':
+        return `<img src="${content.src || '/api/placeholder/400/300'}" alt="${content.alt || 'Image'}" style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} max-width: 100%; height: auto;" />`
+      
+      case 'button':
+        return `<button style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} cursor: pointer; border: none; padding: 12px 24px; border-radius: 6px; background: ${defaultCustomizations?.colors?.primary || '#3b82f6'}; color: white;">${content.text || 'Button'}</button>`
+      
+      case 'hero':
+        return `
+          <div style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} position: relative; background-image: url('${content.backgroundImage || ''}'); background-size: cover; background-position: center; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center; color: white;">
+            <div style="background: rgba(0,0,0,0.4); padding: 2rem; border-radius: 8px; max-width: 800px;">
+              <h1 style="font-size: 3rem; margin-bottom: 1rem; font-weight: bold;">${content.title || 'Hero Title'}</h1>
+              <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">${content.subtitle || 'Hero subtitle'}</p>
+              <button style="padding: 15px 30px; background: ${defaultCustomizations?.colors?.primary || '#3b82f6'}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1rem;">${content.ctaText || 'Call to Action'}</button>
+            </div>
+          </div>
+        `
+      
+      default:
+        return `<div style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} padding: 1rem; border: 1px dashed #ccc; text-align: center; background: #f9f9f9;">${component.type} component</div>`
+    }
+  }
+
   const handleAISuggestionFeedback = (suggestionId, liked, feedback) => {
-    // Implementation for AI feedback
     console.log('AI Feedback:', { suggestionId, liked, feedback })
   }
 
@@ -183,7 +259,7 @@ const Themes = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="library" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             Library
@@ -191,6 +267,10 @@ const Themes = () => {
           <TabsTrigger value="builder" className="flex items-center gap-2">
             <Layout className="h-4 w-4" />
             Builder
+          </TabsTrigger>
+          <TabsTrigger value="custom" className="flex items-center gap-2">
+            <Wand2 className="h-4 w-4" />
+            Custom
           </TabsTrigger>
           <TabsTrigger value="ai-chat" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
@@ -225,8 +305,23 @@ const Themes = () => {
         <TabsContent value="builder">
           <AdvancedDragDropBuilder
             layout={layoutData}
-            onLayoutUpdate={setLayoutData}
+            onLayoutUpdate={(layout) => {
+              setLayoutData(layout)
+              generateBuilderHtml(layout)
+            }}
             currentTheme={currentTheme}
+          />
+        </TabsContent>
+
+        <TabsContent value="custom">
+          <CustomComponentBuilder
+            onSaveComponent={(component) => {
+              setCustomComponents(prev => [...prev, component])
+            }}
+            onLoadComponent={(component) => {
+              console.log('Loading custom component:', component.name)
+            }}
+            existingComponents={customComponents}
           />
         </TabsContent>
 
@@ -254,7 +349,7 @@ const Themes = () => {
               console.log('Code updated:', { code, filename })
             }}
             onPreviewUpdate={(html) => {
-              console.log('Preview updated with HTML:', html)
+              setGeneratedHtml(html)
             }}
             theme={currentTheme?.theme?.template_data || defaultCustomizations}
           />
@@ -266,6 +361,7 @@ const Themes = () => {
             theme={currentTheme?.theme}
             customizations={currentTheme?.customizations_json || defaultCustomizations}
             layout={layoutData}
+            previewHtml={generatedHtml}
             onApplyTheme={applyTheme}
             onCustomize={() => setActiveTab('builder')}
           />
