@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { EnhancedComponentRenderer } from './EnhancedComponentRenderer'
+import { ComponentEditor } from './ComponentEditor'
 import { 
   Type, 
   Image, 
@@ -102,6 +104,7 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
   const [activeTab, setActiveTab] = useState<'components' | 'templates' | 'publishing'>('components')
   const [customDomain, setCustomDomain] = useState('')
   const [isPublishing, setIsPublishing] = useState(false)
+  const [showComponentEditor, setShowComponentEditor] = useState(false)
 
   const componentTypes: Omit<Component, 'id' | 'content' | 'styles'>[] = [
     { type: 'text', name: 'Text Block', icon: <Type className="h-4 w-4" /> },
@@ -762,296 +765,32 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     }
   }, [customDomain])
 
-  const ComponentRenderer: React.FC<{ component: Component; isPreview: boolean }> = ({ 
-    component, 
-    isPreview 
-  }) => {
-    const currentStyles = component.responsive?.[previewMode] || component.styles
+  const handleComponentUpdate = useCallback((updatedComponent: Component) => {
+    const newLayout = layout.map(section => ({
+      ...section,
+      components: section.components.map(comp => 
+        comp.id === updatedComponent.id ? updatedComponent : comp
+      )
+    }))
+    onLayoutUpdate(newLayout)
+    toast.success('Component updated successfully')
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, history, historyIndex])
 
-    if (isPreview) {
-      // Render actual functional components in preview mode with proper sizing
-      const containerStyle = {
-        width: currentStyles.width || '100%',
-        height: currentStyles.height || 'auto',
-        margin: currentStyles.margin || '0',
-        padding: currentStyles.padding || '0',
-        backgroundColor: currentStyles.backgroundColor || 'transparent'
-      }
+  const handleComponentClick = useCallback((component: Component) => {
+    setSelectedComponent(component)
+    setShowComponentEditor(true)
+  }, [])
 
-      switch (component.type) {
-        case 'text':
-          const TextTag = component.content.tag || 'p'
-          return (
-            <div style={containerStyle}>
-              <TextTag 
-                style={{
-                  fontSize: currentStyles.fontSize || '16px',
-                  color: currentStyles.color || 'hsl(var(--foreground))',
-                  fontWeight: currentStyles.fontWeight || 'normal',
-                  textAlign: currentStyles.textAlign || 'left',
-                  margin: '0',
-                  padding: '0',
-                  lineHeight: '1.6'
-                }}
-                className="w-full"
-              >
-                {component.content.text}
-              </TextTag>
-            </div>
-          )
-
-        case 'image':
-          return (
-            <div style={containerStyle}>
-              <img 
-                src={component.content.src} 
-                alt={component.content.alt}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  objectFit: 'cover',
-                  borderRadius: currentStyles.borderRadius || '0'
-                }}
-                className="block"
-              />
-            </div>
-          )
-
-        case 'button':
-          return (
-            <div style={{...containerStyle, display: 'flex', justifyContent: currentStyles.textAlign === 'center' ? 'center' : currentStyles.textAlign === 'right' ? 'flex-end' : 'flex-start'}}>
-              <Button 
-                variant={component.content.variant || 'default'}
-                style={{
-                  fontSize: currentStyles.fontSize || '16px',
-                  fontWeight: currentStyles.fontWeight || 'normal',
-                  backgroundColor: currentStyles.backgroundColor || undefined,
-                  color: currentStyles.color || undefined,
-                  borderRadius: currentStyles.borderRadius || '6px'
-                }}
-                className="transition-all duration-200 hover:scale-105"
-                onClick={() => {
-                  if (component.content.link && component.content.link !== '#') {
-                    window.open(component.content.link, '_blank')
-                  }
-                }}
-              >
-                {component.content.text}
-              </Button>
-            </div>
-          )
-
-        case 'product-card':
-          return (
-            <div style={containerStyle}>
-              <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                <div className="aspect-square overflow-hidden">
-                  <img 
-                    src={component.content.image}
-                    alt={component.content.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-2">{component.content.title}</h3>
-                  <p className="text-muted-foreground mb-2 text-sm">{component.content.description}</p>
-                  <p className="text-xl font-bold text-primary">{component.content.price}</p>
-                </CardContent>
-              </Card>
-            </div>
-          )
-
-        case 'hero':
-          return (
-            <div 
-              className="relative w-full flex items-center justify-center bg-cover bg-center"
-              style={{
-                ...containerStyle,
-                backgroundImage: component.content.backgroundImage ? `url(${component.content.backgroundImage})` : undefined,
-                backgroundColor: currentStyles.backgroundColor || 'hsl(var(--primary))',
-                color: currentStyles.color || 'white',
-                minHeight: currentStyles.height || '400px'
-              }}
-            >
-              <div className="absolute inset-0 bg-black/30"></div>
-              <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
-                <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                  {component.content.title}
-                </h1>
-                <p className="text-xl md:text-2xl mb-8 opacity-90">
-                  {component.content.subtitle}
-                </p>
-                {component.content.ctaText && (
-                  <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-                    {component.content.ctaText}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )
-
-        case 'form':
-          return (
-            <div style={containerStyle}>
-              <Card className="p-6 w-full">
-                <form className="space-y-4">
-                  {component.content.fields?.map((field: any, index: number) => (
-                    <div key={index} className="space-y-2">
-                      <Label htmlFor={field.name}>{field.label}</Label>
-                      <Input 
-                        id={field.name}
-                        type={field.type}
-                        required={field.required}
-                        placeholder={field.placeholder || field.label}
-                      />
-                    </div>
-                  ))}
-                  <Button type="submit" className="w-full">
-                    {component.content.submitText}
-                  </Button>
-                </form>
-              </Card>
-            </div>
-          )
-
-        case 'gallery':
-          return (
-            <div style={containerStyle}>
-              <div 
-                className="grid gap-4"
-                style={{
-                  gridTemplateColumns: `repeat(${component.content.columns || 3}, 1fr)`
-                }}
-              >
-                {component.content.images?.map((src: string, index: number) => (
-                  <img 
-                    key={index}
-                    src={src}
-                    alt={`Gallery image ${index + 1}`}
-                    className="w-full h-48 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
-                  />
-                ))}
-              </div>
-            </div>
-          )
-
-        case 'testimonial':
-          return (
-            <Card className="p-6 text-center">
-              <blockquote className="text-lg italic mb-4">
-                "{component.content.quote}"
-              </blockquote>
-              <div className="flex items-center justify-center gap-3">
-                <img 
-                  src={component.content.avatar}
-                  alt={component.content.author}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-semibold">{component.content.author}</p>
-                  <p className="text-sm text-muted-foreground">{component.content.position}</p>
-                </div>
-              </div>
-            </Card>
-          )
-
-        case 'pricing':
-          return (
-            <div className="grid md:grid-cols-2 gap-6">
-              {component.content.plans?.map((plan: any, index: number) => (
-                <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-3xl font-bold text-primary mb-4">{plan.price}</p>
-                  <ul className="space-y-2 mb-6">
-                    {plan.features?.map((feature: string, featureIndex: number) => (
-                      <li key={featureIndex} className="text-muted-foreground">
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button className="w-full">Choose Plan</Button>
-                </Card>
-              ))}
-            </div>
-          )
-
-        default:
-          return (
-            <div 
-              style={currentStyles}
-              className="p-4 bg-muted/50 border border-dashed border-muted-foreground/25 rounded-lg"
-            >
-              <p className="text-center text-muted-foreground">
-                {component.type} component
-              </p>
-            </div>
-          )
-      }
-    }
-
-    // Edit mode - show component cards with controls
-    return (
-      <Card 
-        className={`p-3 border-2 transition-all cursor-pointer hover:shadow-md ${
-          selectedComponent?.id === component.id 
-            ? 'border-primary bg-primary/5' 
-            : 'border-border hover:border-primary/50'
-        }`}
-        onClick={() => setSelectedComponent(component)}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            {component.icon}
-            <span className="font-medium text-sm">{component.name}</span>
-          </div>
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation()
-                // Handle settings
-              }}
-            >
-              <Settings className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation()
-                const sectionId = layout.find(s => 
-                  s.components.some(c => c.id === component.id)
-                )?.id
-                if (sectionId) duplicateComponent(sectionId, component.id)
-              }}
-            >
-              <Copy className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-              onClick={(e) => {
-                e.stopPropagation()
-                const sectionId = layout.find(s => 
-                  s.components.some(c => c.id === component.id)
-                )?.id
-                if (sectionId) deleteComponent(sectionId, component.id)
-              }}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {component.type} • Click to edit
-        </div>
-      </Card>
-    )
-  }
+  const handleComponentDoubleClick = useCallback((component: Component) => {
+    setSelectedComponent(component)
+    setShowComponentEditor(true)
+  }, [])
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -1455,9 +1194,12 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
                                             : ''
                                         }`}
                                       >
-                                        <ComponentRenderer 
+                                        <EnhancedComponentRenderer 
                                           component={component} 
                                           isPreview={isPreview}
+                                          isSelected={selectedComponent?.id === component.id}
+                                          onClick={() => handleComponentClick(component)}
+                                          onDoubleClick={() => handleComponentDoubleClick(component)}
                                         />
                                       </div>
                                     )}
@@ -1476,6 +1218,20 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
             </div>
           </div>
         </div>
+        
+        {/* Component Editor Sidebar */}
+        {showComponentEditor && selectedComponent && (
+          <div className="fixed right-4 top-4 z-50">
+            <ComponentEditor
+              component={selectedComponent}
+              onUpdate={handleComponentUpdate}
+              onClose={() => {
+                setShowComponentEditor(false)
+                setSelectedComponent(null)
+              }}
+            />
+          </div>
+        )}
       </div>
     </DragDropContext>
   )
