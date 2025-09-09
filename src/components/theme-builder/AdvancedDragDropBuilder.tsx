@@ -325,6 +325,7 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
   const createNewComponent = useCallback((type: Component['type']): Component => {
     const baseComponent = componentTypes.find(c => c.type === type)
     const defaultContent = getDefaultContent(type)
+    const defaultStyles = getDefaultStyles(type)
     
     return {
       id: `${type}-${Date.now()}`,
@@ -332,16 +333,7 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
       name: baseComponent?.name || type,
       icon: baseComponent?.icon || <Type className="h-4 w-4" />,
       content: defaultContent,
-      styles: {
-        width: '100%',
-        padding: '16px',
-        margin: '8px',
-        backgroundColor: 'transparent',
-        color: 'hsl(var(--foreground))',
-        fontSize: '16px',
-        fontWeight: 'normal',
-        textAlign: 'left'
-      },
+      styles: defaultStyles,
       responsive: {
         desktop: defaultContent,
         tablet: defaultContent,
@@ -349,6 +341,120 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
       }
     }
   }, [componentTypes])
+
+  const getDefaultStyles = (type: Component['type']) => {
+    const baseStyles = {
+      width: '100%',
+      margin: '0',
+      backgroundColor: 'transparent',
+      color: 'hsl(var(--foreground))',
+      fontSize: '16px',
+      fontWeight: 'normal',
+      textAlign: 'left' as const
+    }
+
+    switch (type) {
+      case 'text':
+        return {
+          ...baseStyles,
+          padding: '16px 0'
+        }
+      case 'image':
+        return {
+          ...baseStyles,
+          padding: '0',
+          height: 'auto'
+        }
+      case 'video':
+        return {
+          ...baseStyles,
+          padding: '0',
+          height: '300px'
+        }
+      case 'button':
+        return {
+          ...baseStyles,
+          padding: '12px 24px',
+          width: 'auto',
+          display: 'inline-block'
+        }
+      case 'product-card':
+        return {
+          ...baseStyles,
+          padding: '0',
+          maxWidth: '350px'
+        }
+      case 'form':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          maxWidth: '500px'
+        }
+      case 'gallery':
+        return {
+          ...baseStyles,
+          padding: '16px 0'
+        }
+      case 'carousel':
+        return {
+          ...baseStyles,
+          padding: '0',
+          height: '400px'
+        }
+      case 'hero':
+        return {
+          ...baseStyles,
+          padding: '80px 20px',
+          minHeight: '400px',
+          backgroundColor: 'hsl(var(--primary))',
+          color: 'white',
+          textAlign: 'center' as const
+        }
+      case 'testimonial':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          maxWidth: '600px'
+        }
+      case 'pricing':
+        return {
+          ...baseStyles,
+          padding: '24px 0'
+        }
+      case 'team':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          maxWidth: '300px',
+          textAlign: 'center' as const
+        }
+      case 'feature':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          textAlign: 'center' as const
+        }
+      case 'newsletter':
+        return {
+          ...baseStyles,
+          padding: '32px 24px',
+          backgroundColor: 'hsl(var(--muted))',
+          textAlign: 'center' as const
+        }
+      case 'footer':
+        return {
+          ...baseStyles,
+          padding: '40px 20px',
+          backgroundColor: 'hsl(var(--muted))',
+          borderTop: '1px solid hsl(var(--border))'
+        }
+      default:
+        return {
+          ...baseStyles,
+          padding: '16px'
+        }
+    }
+  }
 
   const getDefaultContent = (type: Component['type']) => {
     switch (type) {
@@ -663,89 +769,112 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     const currentStyles = component.responsive?.[previewMode] || component.styles
 
     if (isPreview) {
-      // Render actual functional components in preview mode
+      // Render actual functional components in preview mode with proper sizing
+      const containerStyle = {
+        width: currentStyles.width || '100%',
+        height: currentStyles.height || 'auto',
+        margin: currentStyles.margin || '0',
+        padding: currentStyles.padding || '0',
+        backgroundColor: currentStyles.backgroundColor || 'transparent'
+      }
+
       switch (component.type) {
         case 'text':
           const TextTag = component.content.tag || 'p'
           return (
-            <TextTag 
-              style={{
-                ...currentStyles,
-                fontSize: currentStyles.fontSize || '16px',
-                color: currentStyles.color || 'hsl(var(--foreground))',
-                fontWeight: currentStyles.fontWeight || 'normal',
-                textAlign: currentStyles.textAlign || 'left'
-              }}
-              className="w-full"
-            >
-              {component.content.text}
-            </TextTag>
+            <div style={containerStyle}>
+              <TextTag 
+                style={{
+                  fontSize: currentStyles.fontSize || '16px',
+                  color: currentStyles.color || 'hsl(var(--foreground))',
+                  fontWeight: currentStyles.fontWeight || 'normal',
+                  textAlign: currentStyles.textAlign || 'left',
+                  margin: '0',
+                  padding: '0',
+                  lineHeight: '1.6'
+                }}
+                className="w-full"
+              >
+                {component.content.text}
+              </TextTag>
+            </div>
           )
 
         case 'image':
           return (
-            <img 
-              src={component.content.src} 
-              alt={component.content.alt}
-              style={{
-                ...currentStyles,
-                maxWidth: '100%',
-                height: 'auto'
-              }}
-              className="w-full object-cover"
-            />
+            <div style={containerStyle}>
+              <img 
+                src={component.content.src} 
+                alt={component.content.alt}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'cover',
+                  borderRadius: currentStyles.borderRadius || '0'
+                }}
+                className="block"
+              />
+            </div>
           )
 
         case 'button':
           return (
-            <Button 
-              variant={component.content.variant || 'default'}
-              style={{
-                ...currentStyles,
-                backgroundColor: currentStyles.backgroundColor || undefined
-              }}
-              className="transition-all duration-200 hover:scale-105"
-              onClick={() => {
-                if (component.content.link && component.content.link !== '#') {
-                  window.open(component.content.link, '_blank')
-                }
-              }}
-            >
-              {component.content.text}
-            </Button>
+            <div style={{...containerStyle, display: 'flex', justifyContent: currentStyles.textAlign === 'center' ? 'center' : currentStyles.textAlign === 'right' ? 'flex-end' : 'flex-start'}}>
+              <Button 
+                variant={component.content.variant || 'default'}
+                style={{
+                  fontSize: currentStyles.fontSize || '16px',
+                  fontWeight: currentStyles.fontWeight || 'normal',
+                  backgroundColor: currentStyles.backgroundColor || undefined,
+                  color: currentStyles.color || undefined,
+                  borderRadius: currentStyles.borderRadius || '6px'
+                }}
+                className="transition-all duration-200 hover:scale-105"
+                onClick={() => {
+                  if (component.content.link && component.content.link !== '#') {
+                    window.open(component.content.link, '_blank')
+                  }
+                }}
+              >
+                {component.content.text}
+              </Button>
+            </div>
           )
 
         case 'product-card':
           return (
-            <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-square overflow-hidden">
-                <img 
-                  src={component.content.image}
-                  alt={component.content.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{component.content.title}</h3>
-                <p className="text-muted-foreground mb-2">{component.content.description}</p>
-                <p className="text-xl font-bold text-primary">{component.content.price}</p>
-              </CardContent>
-            </Card>
+            <div style={containerStyle}>
+              <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                <div className="aspect-square overflow-hidden">
+                  <img 
+                    src={component.content.image}
+                    alt={component.content.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-lg mb-2">{component.content.title}</h3>
+                  <p className="text-muted-foreground mb-2 text-sm">{component.content.description}</p>
+                  <p className="text-xl font-bold text-primary">{component.content.price}</p>
+                </CardContent>
+              </Card>
+            </div>
           )
 
         case 'hero':
           return (
             <div 
-              className="relative w-full min-h-[400px] flex items-center justify-center bg-cover bg-center"
+              className="relative w-full flex items-center justify-center bg-cover bg-center"
               style={{
+                ...containerStyle,
                 backgroundImage: component.content.backgroundImage ? `url(${component.content.backgroundImage})` : undefined,
                 backgroundColor: currentStyles.backgroundColor || 'hsl(var(--primary))',
                 color: currentStyles.color || 'white',
-                padding: currentStyles.padding || '80px 20px'
+                minHeight: currentStyles.height || '400px'
               }}
             >
               <div className="absolute inset-0 bg-black/30"></div>
-              <div className="relative z-10 text-center max-w-4xl mx-auto">
+              <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
                 <h1 className="text-4xl md:text-6xl font-bold mb-4">
                   {component.content.title}
                 </h1>
@@ -763,42 +892,46 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
 
         case 'form':
           return (
-            <Card className="p-6">
-              <form className="space-y-4">
-                {component.content.fields?.map((field: any, index: number) => (
-                  <div key={index} className="space-y-2">
-                    <Label htmlFor={field.name}>{field.label}</Label>
-                    <Input 
-                      id={field.name}
-                      type={field.type}
-                      required={field.required}
-                      placeholder={field.placeholder || field.label}
-                    />
-                  </div>
-                ))}
-                <Button type="submit" className="w-full">
-                  {component.content.submitText}
-                </Button>
-              </form>
-            </Card>
+            <div style={containerStyle}>
+              <Card className="p-6 w-full">
+                <form className="space-y-4">
+                  {component.content.fields?.map((field: any, index: number) => (
+                    <div key={index} className="space-y-2">
+                      <Label htmlFor={field.name}>{field.label}</Label>
+                      <Input 
+                        id={field.name}
+                        type={field.type}
+                        required={field.required}
+                        placeholder={field.placeholder || field.label}
+                      />
+                    </div>
+                  ))}
+                  <Button type="submit" className="w-full">
+                    {component.content.submitText}
+                  </Button>
+                </form>
+              </Card>
+            </div>
           )
 
         case 'gallery':
           return (
-            <div 
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${component.content.columns || 3}, 1fr)`
-              }}
-            >
-              {component.content.images?.map((src: string, index: number) => (
-                <img 
-                  key={index}
-                  src={src}
-                  alt={`Gallery image ${index + 1}`}
-                  className="w-full h-48 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
-                />
-              ))}
+            <div style={containerStyle}>
+              <div 
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: `repeat(${component.content.columns || 3}, 1fr)`
+                }}
+              >
+                {component.content.images?.map((src: string, index: number) => (
+                  <img 
+                    key={index}
+                    src={src}
+                    alt={`Gallery image ${index + 1}`}
+                    className="w-full h-48 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+                  />
+                ))}
+              </div>
             </div>
           )
 
