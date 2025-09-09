@@ -259,7 +259,7 @@ const Themes = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="library" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             Library
@@ -275,10 +275,6 @@ const Themes = () => {
           <TabsTrigger value="ai-chat" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             AI Chat
-          </TabsTrigger>
-          <TabsTrigger value="code" className="flex items-center gap-2">
-            <Code className="h-4 w-4" />
-            Code Editor
           </TabsTrigger>
           <TabsTrigger value="preview" className="flex items-center gap-2">
             <Eye className="h-4 w-4" />
@@ -303,14 +299,30 @@ const Themes = () => {
         </TabsContent>
 
         <TabsContent value="builder">
-          <AdvancedDragDropBuilder
-            layout={layoutData}
-            onLayoutUpdate={(layout) => {
-              setLayoutData(layout)
-              generateBuilderHtml(layout)
-            }}
-            currentTheme={currentTheme}
-          />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Drag & Drop Builder</h3>
+                <p className="text-sm text-muted-foreground">Create your website by dragging components</p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setActiveTab('preview')}
+                className="flex items-center gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                Preview Builder
+              </Button>
+            </div>
+            <AdvancedDragDropBuilder
+              layout={layoutData}
+              onLayoutUpdate={(layout) => {
+                setLayoutData(layout)
+                generateBuilderHtml(layout)
+              }}
+              currentTheme={currentTheme}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="custom">
@@ -343,17 +355,6 @@ const Themes = () => {
           />
         </TabsContent>
 
-        <TabsContent value="code">
-          <EnhancedCodeEditor
-            onCodeUpdate={(code, filename) => {
-              console.log('Code updated:', { code, filename })
-            }}
-            onPreviewUpdate={(html) => {
-              setGeneratedHtml(html)
-            }}
-            theme={currentTheme?.theme?.template_data || defaultCustomizations}
-          />
-        </TabsContent>
 
 
         <TabsContent value="preview">
