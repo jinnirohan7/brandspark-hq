@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { toast } from 'sonner'
 import { EnhancedComponentRenderer } from './EnhancedComponentRenderer'
 import { ComponentEditor } from './ComponentEditor'
-import { CustomComponentBuilder } from './CustomComponentBuilder'
 import { 
   Type, 
   Image, 
@@ -46,13 +45,12 @@ import {
   Upload,
   Star,
   Mail,
-  Users,
-  EyeOff
+  Users
 } from 'lucide-react'
 
 interface Component {
   id: string
-  type: 'text' | 'image' | 'video' | 'button' | 'product-card' | 'form' | 'gallery' | 'carousel' | 'hero' | 'testimonial' | 'pricing' | 'team' | 'feature' | 'newsletter' | 'footer' | 'custom'
+  type: 'text' | 'image' | 'video' | 'button' | 'product-card' | 'form' | 'gallery' | 'carousel' | 'hero' | 'testimonial' | 'pricing' | 'team' | 'feature' | 'newsletter' | 'footer'
   name: string
   icon: React.ReactNode
   content: any
@@ -104,8 +102,10 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
   const [history, setHistory] = useState<Section[][]>([layout])
   const [historyIndex, setHistoryIndex] = useState(0)
   const [activeTab, setActiveTab] = useState<'components' | 'templates' | 'custom' | 'publishing'>('components')
+  const [customDomain, setCustomDomain] = useState('')
+  const [isPublishing, setIsPublishing] = useState(false)
   const [showComponentEditor, setShowComponentEditor] = useState(false)
-  const [customComponents, setCustomComponents] = useState<any[]>([])
+  const [customComponents, setCustomComponents] = useState<Component[]>([])
   const [showCustomBuilder, setShowCustomBuilder] = useState(false)
   const [previewHtml, setPreviewHtml] = useState('')
 
@@ -127,84 +127,206 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     { type: 'footer', name: 'Footer', icon: <Layout className="h-4 w-4" /> }
   ]
 
-  // Generate HTML for preview
-  const generateBuilderHtml = useCallback((currentLayout: Section[]) => {
-    if (!currentLayout || currentLayout.length === 0) return ''
-
-    const sections = currentLayout.map(section => {
-      const components = section.components?.map((component) => {
-        return renderComponentAsHtml(component)
-      }).join('') || ''
-
-      return `
-        <section style="display: grid; grid-template-columns: repeat(${section.gridCols || 12}, 1fr); gap: 1rem; padding: 1rem; ${section.styles ? Object.entries(section.styles).map(([k, v]) => `${k}: ${v}`).join('; ') : ''}">
-          ${components}
-        </section>
-      `
-    }).join('')
-
-    const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Generated Website</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { 
-            font-family: ${currentTheme?.customizations?.typography?.fontFamily || 'Inter, sans-serif'};
-            background-color: ${currentTheme?.customizations?.colors?.background || '#ffffff'};
-            color: ${currentTheme?.customizations?.colors?.foreground || '#000000'};
-            line-height: 1.6;
-          }
-          @media (max-width: 768px) {
-            section { grid-template-columns: 1fr !important; }
-          }
-          @media (max-width: 1024px) and (min-width: 769px) {
-            section { grid-template-columns: repeat(2, 1fr) !important; }
-          }
-        </style>
-      </head>
-      <body>
-        ${sections}
-      </body>
-      </html>
-    `
-    
-    setPreviewHtml(html)
-    return html
-  }, [currentTheme])
-
-  const renderComponentAsHtml = (component: Component) => {
-    const styles = component.styles || {}
-    const content = component.content || {}
-    
-    switch (component.type) {
-      case 'text':
-        return `<${content.tag || 'p'} style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')}">${content.text || 'Text content'}</${content.tag || 'p'}>`
-      
-      case 'image':
-        return `<img src="${content.src || '/api/placeholder/400/300'}" alt="${content.alt || 'Image'}" style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} max-width: 100%; height: auto;" />`
-      
-      case 'button':
-        return `<button style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} cursor: pointer; border: none; padding: 12px 24px; border-radius: 6px; background: ${currentTheme?.customizations?.colors?.primary || '#3b82f6'}; color: white;">${content.text || 'Button'}</button>`
-      
-      case 'hero':
-        return `
-          <div style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} position: relative; background-image: url('${content.backgroundImage || ''}'); background-size: cover; background-position: center; min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center; color: white;">
-            <div style="background: rgba(0,0,0,0.4); padding: 2rem; border-radius: 8px; max-width: 800px;">
-              <h1 style="font-size: 3rem; margin-bottom: 1rem; font-weight: bold;">${content.title || 'Hero Title'}</h1>
-              <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">${content.subtitle || 'Hero subtitle'}</p>
-              <button style="padding: 15px 30px; background: ${currentTheme?.customizations?.colors?.primary || '#3b82f6'}; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1rem;">${content.ctaText || 'Call to Action'}</button>
-            </div>
-          </div>
-        `
-      
-      default:
-        return `<div style="${Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ')} padding: 1rem; border: 1px dashed #ccc; text-align: center; background: #f9f9f9;">${component.type} component</div>`
+  // Pre-built templates with complete layouts
+  const templates = [
+    {
+      id: 'portfolio',
+      name: 'Portfolio',
+      description: 'Perfect for showcasing creative work',
+      preview: '/templates/portfolio.jpg',
+      category: 'creative',
+      sections: [
+        {
+          id: 'hero-portfolio',
+          name: 'Hero Section',
+          components: [
+            {
+              id: 'portfolio-hero',
+              type: 'hero' as const,
+              name: 'Portfolio Hero',
+              icon: <Layers className="h-4 w-4" />,
+              content: {
+                title: 'Creative Portfolio',
+                subtitle: 'Showcasing my best work',
+                backgroundImage: '/api/placeholder/1200/600',
+                ctaText: 'View Projects',
+                ctaLink: '#projects'
+              },
+              styles: {
+                width: '100%',
+                padding: '80px 20px',
+                margin: '0',
+                backgroundColor: 'transparent',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 'normal',
+                textAlign: 'center' as const
+              }
+            }
+          ],
+          gridCols: 12,
+          styles: { padding: '0', backgroundColor: 'transparent' }
+        }
+      ]
+    },
+    {
+      id: 'business',
+      name: 'Business',
+      description: 'Professional business website',
+      preview: '/templates/business.jpg',
+      category: 'business',
+      sections: [
+        {
+          id: 'hero-business',
+          name: 'Hero Section',
+          components: [
+            {
+              id: 'business-hero',
+              type: 'hero' as const,
+              name: 'Business Hero',
+              icon: <Layers className="h-4 w-4" />,
+              content: {
+                title: 'Your Business Solution',
+                subtitle: 'Professional services you can trust',
+                backgroundImage: '/api/placeholder/1200/600',
+                ctaText: 'Learn More',
+                ctaLink: '#services'
+              },
+              styles: {
+                width: '100%',
+                padding: '100px 20px',
+                margin: '0',
+                backgroundColor: 'hsl(var(--primary))',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 'normal',
+                textAlign: 'center' as const
+              }
+            }
+          ],
+          gridCols: 12,
+          styles: { padding: '0', backgroundColor: 'transparent' }
+        }
+      ]
+    },
+    {
+      id: 'blog',
+      name: 'Blog',
+      description: 'Clean blog layout for writers',
+      preview: '/templates/blog.jpg',
+      category: 'content',
+      sections: [
+        {
+          id: 'hero-blog',
+          name: 'Blog Header',
+          components: [
+            {
+              id: 'blog-header',
+              type: 'text' as const,
+              name: 'Blog Title',
+              icon: <Type className="h-4 w-4" />,
+              content: {
+                text: 'My Blog',
+                tag: 'h1'
+              },
+              styles: {
+                width: '100%',
+                padding: '60px 20px',
+                margin: '0',
+                backgroundColor: 'hsl(var(--muted))',
+                color: 'hsl(var(--foreground))',
+                fontSize: '48px',
+                fontWeight: 'bold',
+                textAlign: 'center' as const
+              }
+            }
+          ],
+          gridCols: 12,
+          styles: { padding: '0', backgroundColor: 'transparent' }
+        }
+      ]
+    },
+    {
+      id: 'ecommerce',
+      name: 'E-commerce',
+      description: 'Online store template',
+      preview: '/templates/ecommerce.jpg',
+      category: 'ecommerce',
+      sections: [
+        {
+          id: 'hero-shop',
+          name: 'Shop Hero',
+          components: [
+            {
+              id: 'shop-hero',
+              type: 'hero' as const,
+              name: 'Shop Hero',
+              icon: <Layers className="h-4 w-4" />,
+              content: {
+                title: 'Online Store',
+                subtitle: 'Discover amazing products',
+                backgroundImage: '/api/placeholder/1200/600',
+                ctaText: 'Shop Now',
+                ctaLink: '#products'
+              },
+              styles: {
+                width: '100%',
+                padding: '80px 20px',
+                margin: '0',
+                backgroundColor: 'hsl(var(--accent))',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 'normal',
+                textAlign: 'center' as const
+              }
+            }
+          ],
+          gridCols: 12,
+          styles: { padding: '0', backgroundColor: 'transparent' }
+        }
+      ]
+    },
+    {
+      id: 'restaurant',
+      name: 'Restaurant',
+      description: 'Food and dining template',
+      preview: '/templates/restaurant.jpg',
+      category: 'food',
+      sections: [
+        {
+          id: 'hero-restaurant',
+          name: 'Restaurant Hero',
+          components: [
+            {
+              id: 'restaurant-hero',
+              type: 'hero' as const,
+              name: 'Restaurant Hero',
+              icon: <Layers className="h-4 w-4" />,
+              content: {
+                title: 'Fine Dining Experience',
+                subtitle: 'Exceptional cuisine awaits you',
+                backgroundImage: '/api/placeholder/1200/600',
+                ctaText: 'Book Table',
+                ctaLink: '#booking'
+              },
+              styles: {
+                width: '100%',
+                padding: '100px 20px',
+                margin: '0',
+                backgroundColor: '#92400e',
+                color: 'white',
+                fontSize: '16px',
+                fontWeight: 'normal',
+                textAlign: 'center' as const
+              }
+            }
+          ],
+          gridCols: 12,
+          styles: { padding: '0', backgroundColor: 'transparent' }
+        }
+      ]
     }
-  }
+  ]
 
   const createNewComponent = useCallback((type: Component['type']): Component => {
     const baseComponent = componentTypes.find(c => c.type === type)
@@ -239,17 +361,104 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
 
     switch (type) {
       case 'text':
-        return { ...baseStyles, padding: '16px 0' }
+        return {
+          ...baseStyles,
+          padding: '16px 0'
+        }
       case 'image':
-        return { ...baseStyles, padding: '0', height: 'auto' }
+        return {
+          ...baseStyles,
+          padding: '0',
+          height: 'auto'
+        }
       case 'video':
-        return { ...baseStyles, padding: '0', height: '300px' }
+        return {
+          ...baseStyles,
+          padding: '0',
+          height: '300px'
+        }
       case 'button':
-        return { ...baseStyles, padding: '12px 24px', width: 'auto', display: 'inline-block' }
+        return {
+          ...baseStyles,
+          padding: '12px 24px',
+          width: 'auto',
+          display: 'inline-block'
+        }
+      case 'product-card':
+        return {
+          ...baseStyles,
+          padding: '0',
+          maxWidth: '350px'
+        }
+      case 'form':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          maxWidth: '500px'
+        }
+      case 'gallery':
+        return {
+          ...baseStyles,
+          padding: '16px 0'
+        }
+      case 'carousel':
+        return {
+          ...baseStyles,
+          padding: '0',
+          height: '400px'
+        }
       case 'hero':
-        return { ...baseStyles, padding: '80px 20px', minHeight: '400px', backgroundColor: 'hsl(var(--primary))', color: 'white', textAlign: 'center' as const }
+        return {
+          ...baseStyles,
+          padding: '80px 20px',
+          minHeight: '400px',
+          backgroundColor: 'hsl(var(--primary))',
+          color: 'white',
+          textAlign: 'center' as const
+        }
+      case 'testimonial':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          maxWidth: '600px'
+        }
+      case 'pricing':
+        return {
+          ...baseStyles,
+          padding: '24px 0'
+        }
+      case 'team':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          maxWidth: '300px',
+          textAlign: 'center' as const
+        }
+      case 'feature':
+        return {
+          ...baseStyles,
+          padding: '24px',
+          textAlign: 'center' as const
+        }
+      case 'newsletter':
+        return {
+          ...baseStyles,
+          padding: '32px 24px',
+          backgroundColor: 'hsl(var(--muted))',
+          textAlign: 'center' as const
+        }
+      case 'footer':
+        return {
+          ...baseStyles,
+          padding: '40px 20px',
+          backgroundColor: 'hsl(var(--muted))',
+          borderTop: '1px solid hsl(var(--border))'
+        }
       default:
-        return { ...baseStyles, padding: '16px' }
+        return {
+          ...baseStyles,
+          padding: '16px'
+        }
     }
   }
 
@@ -263,14 +472,94 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
         return { src: '', poster: '/api/placeholder/400/300' }
       case 'button':
         return { text: 'Click me', link: '#', variant: 'primary' }
+      case 'product-card':
+        return { 
+          title: 'Product Name', 
+          price: '$99.99', 
+          image: '/api/placeholder/300/300',
+          description: 'Product description...'
+        }
+      case 'form':
+        return { 
+          fields: [
+            { type: 'text', name: 'name', label: 'Name', required: true },
+            { type: 'email', name: 'email', label: 'Email', required: true }
+          ],
+          submitText: 'Submit'
+        }
+      case 'gallery':
+        return { 
+          images: [
+            '/api/placeholder/300/200',
+            '/api/placeholder/300/200',
+            '/api/placeholder/300/200'
+          ],
+          columns: 3
+        }
+      case 'carousel':
+        return {
+          slides: [
+            { image: '/api/placeholder/800/400', title: 'Slide 1', description: 'Description 1' },
+            { image: '/api/placeholder/800/400', title: 'Slide 2', description: 'Description 2' }
+          ],
+          autoplay: true
+        }
       case 'hero':
-        return { title: 'Hero Title', subtitle: 'Hero subtitle', backgroundImage: '/api/placeholder/1200/600', ctaText: 'Get Started', ctaLink: '#' }
+        return {
+          title: 'Welcome to Our Website',
+          subtitle: 'We create amazing experiences',
+          backgroundImage: '/api/placeholder/1200/600',
+          ctaText: 'Get Started',
+          ctaLink: '#'
+        }
+      case 'testimonial':
+        return {
+          quote: 'This is an amazing service!',
+          author: 'John Doe',
+          position: 'CEO, Company',
+          avatar: '/api/placeholder/80/80'
+        }
+      case 'pricing':
+        return {
+          plans: [
+            { name: 'Basic', price: '$9.99', features: ['Feature 1', 'Feature 2'] },
+            { name: 'Pro', price: '$19.99', features: ['All Basic', 'Feature 3', 'Feature 4'] }
+          ]
+        }
+      case 'team':
+        return {
+          name: 'Team Member',
+          position: 'Position',
+          bio: 'Brief bio...',
+          image: '/api/placeholder/200/200',
+          social: {}
+        }
+      case 'feature':
+        return {
+          title: 'Amazing Feature',
+          description: 'Feature description...',
+          icon: 'star'
+        }
+      case 'newsletter':
+        return {
+          title: 'Subscribe to our newsletter',
+          description: 'Get the latest updates',
+          placeholder: 'Enter your email'
+        }
+      case 'footer':
+        return {
+          sections: [
+            { title: 'Company', links: ['About', 'Contact', 'Careers'] },
+            { title: 'Support', links: ['Help', 'FAQ', 'Support'] }
+          ],
+          copyright: '© 2024 Your Company'
+        }
       default:
-        return { text: 'Component content' }
+        return { text: 'New component' }
     }
   }
 
-  const handleAddSection = useCallback(() => {
+  const addSection = useCallback(() => {
     const newSection: Section = {
       id: `section-${Date.now()}`,
       name: `Section ${layout.length + 1}`,
@@ -278,20 +567,23 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
       gridCols: 12,
       styles: {
         padding: '40px 20px',
-        backgroundColor: 'transparent',
-        minHeight: '200px'
+        backgroundColor: 'transparent'
       }
     }
     
-    const updatedLayout = [...layout, newSection]
-    onLayoutUpdate(updatedLayout)
-    generateBuilderHtml(updatedLayout)
-    toast.success('New section added')
-  }, [layout, onLayoutUpdate, generateBuilderHtml])
+    const newLayout = [...layout, newSection]
+    onLayoutUpdate(newLayout)
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, history, historyIndex])
 
-  const handleAddComponentToSection = useCallback((sectionId: string, componentType: Component['type']) => {
+  const addComponent = useCallback((sectionId: string, componentType: Component['type']) => {
     const newComponent = createNewComponent(componentType)
-    const updatedLayout = layout.map(section => {
+    const newLayout = layout.map(section => {
       if (section.id === sectionId) {
         return {
           ...section,
@@ -300,39 +592,202 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
       }
       return section
     })
-    onLayoutUpdate(updatedLayout)
-    generateBuilderHtml(updatedLayout)
-    toast.success(`Added ${componentType} component`)
-  }, [layout, createNewComponent, onLayoutUpdate, generateBuilderHtml])
+    
+    onLayoutUpdate(newLayout)
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, createNewComponent, history, historyIndex])
 
-  const handleDragEnd = useCallback((result: DropResult) => {
+  const deleteComponent = useCallback((sectionId: string, componentId: string) => {
+    const newLayout = layout.map(section => {
+      if (section.id === sectionId) {
+        return {
+          ...section,
+          components: section.components.filter(c => c.id !== componentId)
+        }
+      }
+      return section
+    })
+    
+    onLayoutUpdate(newLayout)
+    setSelectedComponent(null)
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, history, historyIndex])
+
+  const duplicateComponent = useCallback((sectionId: string, componentId: string) => {
+    const newLayout = layout.map(section => {
+      if (section.id === sectionId) {
+        const componentToDuplicate = section.components.find(c => c.id === componentId)
+        if (componentToDuplicate) {
+          const duplicatedComponent = {
+            ...componentToDuplicate,
+            id: `${componentToDuplicate.type}-${Date.now()}`
+          }
+          return {
+            ...section,
+            components: [...section.components, duplicatedComponent]
+          }
+        }
+      }
+      return section
+    })
+    
+    onLayoutUpdate(newLayout)
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, history, historyIndex])
+
+  const onDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) return
 
     const { source, destination } = result
 
-    if (source.droppableId === 'components-panel') {
-      // Adding new component
-      const componentType = result.draggableId as Component['type']
-      const targetSectionId = destination.droppableId
-      handleAddComponentToSection(targetSectionId, componentType)
-    } else {
-      // Moving existing component
-      const updatedLayout = [...layout]
-      const sourceSection = updatedLayout.find(s => s.id === source.droppableId)
-      const destSection = updatedLayout.find(s => s.id === destination.droppableId)
-
-      if (sourceSection && destSection) {
-        const [movedComponent] = sourceSection.components.splice(source.index, 1)
-        destSection.components.splice(destination.index, 0, movedComponent)
-        
-        onLayoutUpdate(updatedLayout)
-        generateBuilderHtml(updatedLayout)
-      }
+    // Handle dragging from component palette to sections
+    if (source.droppableId === 'component-palette') {
+      const componentType = componentTypes[source.index].type
+      addComponent(destination.droppableId, componentType)
+      toast.success(`${componentTypes[source.index].name} added to section`)
+      return
     }
-  }, [layout, onLayoutUpdate, handleAddComponentToSection, generateBuilderHtml])
+
+    // Handle reordering within the same section
+    if (source.droppableId === destination.droppableId) {
+      const sectionId = source.droppableId
+      const section = layout.find(s => s.id === sectionId)
+      if (!section) return
+
+      const newComponents = Array.from(section.components)
+      const [reorderedItem] = newComponents.splice(source.index, 1)
+      newComponents.splice(destination.index, 0, reorderedItem)
+
+      const newLayout = layout.map(s => 
+        s.id === sectionId 
+          ? { ...s, components: newComponents }
+          : s
+      )
+      
+      onLayoutUpdate(newLayout)
+      
+      // Add to history
+      const newHistory = history.slice(0, historyIndex + 1)
+      newHistory.push(newLayout)
+      setHistory(newHistory)
+      setHistoryIndex(newHistory.length - 1)
+      return
+    }
+
+    // Handle moving components between sections
+    const sourceSection = layout.find(s => s.id === source.droppableId)
+    const destSection = layout.find(s => s.id === destination.droppableId)
+    
+    if (!sourceSection || !destSection) return
+
+    const sourceComponents = Array.from(sourceSection.components)
+    const [movedComponent] = sourceComponents.splice(source.index, 1)
+    
+    const destComponents = Array.from(destSection.components)
+    destComponents.splice(destination.index, 0, movedComponent)
+
+    const newLayout = layout.map(section => {
+      if (section.id === source.droppableId) {
+        return { ...section, components: sourceComponents }
+      }
+      if (section.id === destination.droppableId) {
+        return { ...section, components: destComponents }
+      }
+      return section
+    })
+    
+    onLayoutUpdate(newLayout)
+    toast.success('Component moved successfully')
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, componentTypes, addComponent, history, historyIndex])
+
+  const applyTemplate = useCallback((template: typeof templates[0]) => {
+    onLayoutUpdate(template.sections)
+    toast.success(`${template.name} template applied!`)
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(template.sections)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [onLayoutUpdate, history, historyIndex])
+
+  const publishWebsite = useCallback(async () => {
+    setIsPublishing(true)
+    try {
+      // Simulate publishing process
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      const siteName = `site-${Date.now()}`
+      const publishedUrl = `https://${siteName}.sellsphere.app`
+      
+      toast.success(`Website published successfully! Live at: ${publishedUrl}`)
+      
+      // Here you would normally make an API call to publish the website
+      console.log('Publishing website with layout:', layout)
+    } catch (error) {
+      toast.error('Failed to publish website')
+    } finally {
+      setIsPublishing(false)
+    }
+  }, [layout])
+
+  const connectDomain = useCallback(async () => {
+    if (!customDomain) {
+      toast.error('Please enter a domain name')
+      return
+    }
+    
+    try {
+      // Simulate domain connection
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      toast.success(`Domain ${customDomain} connected successfully!`)
+      setCustomDomain('')
+    } catch (error) {
+      toast.error('Failed to connect domain')
+    }
+  }, [customDomain])
+
+  const handleComponentUpdate = useCallback((updatedComponent: Component) => {
+    const newLayout = layout.map(section => ({
+      ...section,
+      components: section.components.map(comp => 
+        comp.id === updatedComponent.id ? updatedComponent : comp
+      )
+    }))
+    onLayoutUpdate(newLayout)
+    toast.success('Component updated successfully')
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(newLayout)
+    setHistory(newHistory)
+    setHistoryIndex(newHistory.length - 1)
+  }, [layout, onLayoutUpdate, history, historyIndex])
 
   const handleComponentClick = useCallback((component: Component) => {
     setSelectedComponent(component)
+    setShowComponentEditor(true)
   }, [])
 
   const handleComponentDoubleClick = useCallback((component: Component) => {
@@ -340,340 +795,445 @@ export const AdvancedDragDropBuilder: React.FC<AdvancedDragDropBuilderProps> = (
     setShowComponentEditor(true)
   }, [])
 
-  const handleComponentUpdate = useCallback((updatedComponent: Component) => {
-    const updatedLayout = layout.map(section => ({
-      ...section,
-      components: section.components.map(comp => 
-        comp.id === updatedComponent.id ? updatedComponent : comp
-      )
-    }))
-    onLayoutUpdate(updatedLayout)
-    generateBuilderHtml(updatedLayout)
-    setSelectedComponent(updatedComponent)
-  }, [layout, onLayoutUpdate, generateBuilderHtml])
-
-  const handleDeleteComponent = useCallback((componentId: string) => {
-    const updatedLayout = layout.map(section => ({
-      ...section,
-      components: section.components.filter(comp => comp.id !== componentId)
-    }))
-    onLayoutUpdate(updatedLayout)
-    generateBuilderHtml(updatedLayout)
-    setSelectedComponent(null)
-    toast.success('Component deleted')
-  }, [layout, onLayoutUpdate, generateBuilderHtml])
-
-  const handleSaveCustomComponent = useCallback((component: any) => {
-    setCustomComponents(prev => [...prev, component])
-    setShowCustomBuilder(false)
-    toast.success('Custom component saved!')
-  }, [])
-
-  // Generate HTML when layout changes
-  useEffect(() => {
-    if (layout.length > 0) {
-      generateBuilderHtml(layout)
-    }
-  }, [layout, generateBuilderHtml])
-
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex h-[calc(100vh-200px)] gap-4">
-        
-        {/* Component Library Sidebar */}
-        <div className="w-80 border-r bg-background/50 backdrop-blur supports-[backdrop-filter]:bg-background/50">
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Components</h3>
-              <div className="flex gap-1">
-                <Button size="sm" variant="outline" onClick={() => setIsPreview(!isPreview)}>
-                  {isPreview ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                </Button>
-                <Button size="sm" variant="outline" onClick={handleAddSection}>
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex gap-1 mb-4">
-              <Button
-                variant={previewMode === 'desktop' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setPreviewMode('desktop')}
-              >
-                <Monitor className="h-3 w-3" />
-              </Button>
-              <Button
-                variant={previewMode === 'tablet' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setPreviewMode('tablet')}
-              >
-                <Tablet className="h-3 w-3" />
-              </Button>
-              <Button
-                variant={previewMode === 'mobile' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setPreviewMode('mobile')}
-              >
-                <Smartphone className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'components' | 'templates' | 'custom' | 'publishing')} className="flex-1">
-            <TabsList className="grid grid-cols-3 mx-4">
-              <TabsTrigger value="components">Components</TabsTrigger>
-              <TabsTrigger value="custom">Custom</TabsTrigger>
-              <TabsTrigger value="templates">Templates</TabsTrigger>
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex h-screen bg-background">
+        {/* Sidebar with tabs */}
+        <div className="w-80 border-r bg-muted/30 overflow-y-auto">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="h-full">
+            <TabsList className="grid w-full grid-cols-3 m-4 mb-0">
+              <TabsTrigger value="components" className="text-xs">
+                <Grid3X3 className="h-3 w-3 mr-1" />
+                Blocks
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="text-xs">
+                <Layout className="h-3 w-3 mr-1" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger value="publishing" className="text-xs">
+                <Globe className="h-3 w-3 mr-1" />
+                Publish
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="components" className="px-4 pb-4">
-              <Droppable droppableId="components-panel" isDropDisabled={true}>
-                {(provided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
-                    <Label className="text-sm font-medium">Drag to Canvas</Label>
-                    <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto">
-                      {componentTypes.map((componentType, index) => (
+            <TabsContent value="components" className="space-y-4">
+              {/* Component Palette */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  Drag Components
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Drag any component below into your website sections
+                </p>
+                <Droppable droppableId="component-palette" isDropDisabled={true}>
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="grid grid-cols-2 gap-3"
+                    >
+                      {componentTypes.map((component, index) => (
                         <Draggable
-                          key={componentType.type}
-                          draggableId={componentType.type}
+                          key={component.type}
+                          draggableId={component.type}
                           index={index}
                         >
                           {(provided, snapshot) => (
-                            <Card
+                            <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`p-3 cursor-pointer hover:shadow-md transition-shadow border-2 ${
-                                snapshot.isDragging ? 'border-primary shadow-lg' : 'border-transparent hover:border-primary/20'
+                              className={`p-3 border border-border rounded-lg cursor-grab active:cursor-grabbing hover:shadow-md transition-all flex flex-col items-center gap-2 text-center ${
+                                snapshot.isDragging 
+                                  ? 'shadow-lg border-primary bg-primary/5 rotate-3 scale-105' 
+                                  : 'hover:border-primary/50 hover:scale-105'
                               }`}
                             >
-                              <div className="flex flex-col items-center gap-2 text-center">
-                                {componentType.icon}
-                                <span className="text-xs font-medium">{componentType.name}</span>
+                              <div className="text-primary">
+                                {component.icon}
                               </div>
-                            </Card>
+                              <span className="text-xs font-medium">{component.name}</span>
+                            </div>
                           )}
                         </Draggable>
                       ))}
+                      {provided.placeholder}
                     </div>
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+                  )}
+                </Droppable>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="custom" className="px-4 pb-4">
-              <div className="space-y-4">
-                <Button
-                  onClick={() => setShowCustomBuilder(true)}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Custom Component
-                </Button>
-                
-                {customComponents.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Your Custom Components</Label>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {customComponents.map((component) => (
-                        <Card key={component.id} className="p-3 border-accent/20 bg-accent/5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Star className="h-4 w-4 text-accent" />
-                              <span className="text-sm font-medium">{component.name}</span>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button 
-                                size="sm" 
-                                variant="ghost"
-                                onClick={() => {
-                                  if (layout.length > 0) {
-                                    handleAddComponentToSection(layout[0].id, 'custom')
-                                  } else {
-                                    handleAddSection()
-                                  }
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
+            <TabsContent value="templates" className="p-4 space-y-4 mt-0">
+              <div>
+                <h3 className="font-semibold mb-3">Ready-to-Use Templates</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Choose a template to get started quickly
+                </p>
+                <div className="space-y-3">
+                  {templates.map((template) => (
+                    <Card key={template.id} className="hover:bg-muted/50 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
+                            <Layout className="h-6 w-6 text-primary" />
                           </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm">{template.name}</h4>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {template.description}
+                            </p>
+                            <Badge variant="secondary" className="mt-2 text-xs">
+                              {template.category}
+                            </Badge>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="w-full mt-3"
+                          onClick={() => applyTemplate(template)}
+                        >
+                          <Zap className="h-3 w-3 mr-1" />
+                          Apply Template
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="templates" className="px-4 pb-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Quick Templates</Label>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      const heroSection: Section = {
-                        id: `section-${Date.now()}`,
-                        name: 'Hero Section',
-                        components: [createNewComponent('hero')],
-                        gridCols: 12,
-                        styles: { padding: '0', backgroundColor: 'transparent' }
-                      }
-                      onLayoutUpdate([heroSection])
-                      toast.success('Hero template applied!')
-                    }}
-                  >
-                    <Layers className="mr-2 h-4 w-4" />
-                    Hero Template
-                  </Button>
-                </div>
+            <TabsContent value="publishing" className="p-4 space-y-6 mt-0">
+              <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Publish & Host
+                </h3>
+                
+                {/* Free Hosting */}
+                <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="h-4 w-4 text-green-600" />
+                      <span className="font-medium text-green-700 dark:text-green-300">Free Hosting</span>
+                    </div>
+                    <p className="text-xs text-green-600 dark:text-green-400 mb-3">
+                      Your site will be hosted for free on sellsphere.app
+                    </p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full">
+                          <Globe className="h-3 w-3 mr-2" />
+                          Quick Publish
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Publish Your Website</DialogTitle>
+                          <DialogDescription>
+                            Your website will be live instantly with free hosting
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Button 
+                          onClick={publishWebsite}
+                          disabled={isPublishing}
+                        >
+                          {isPublishing ? (
+                            <>
+                              <Upload className="h-3 w-3 mr-2 animate-spin" />
+                              Publishing...
+                            </>
+                          ) : (
+                            <>
+                              <Globe className="h-3 w-3 mr-2" />
+                              Publish Now
+                            </>
+                          )}
+                        </Button>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+
+                {/* Custom Domain */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Crown className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium">Custom Domain</span>
+                      <Badge variant="secondary" className="text-xs">Premium</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Connect your own domain for a professional look
+                    </p>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="yourdomain.com"
+                        value={customDomain}
+                        onChange={(e) => setCustomDomain(e.target.value)}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={connectDomain}
+                      >
+                        <Link className="h-3 w-3 mr-2" />
+                        Connect Domain
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
         </div>
 
         {/* Main Canvas */}
-        <div className="flex-1 overflow-auto">
-          <div className="h-full bg-background border rounded-lg">
-            {layout.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="text-4xl mb-4">🎨</div>
-                  <h3 className="text-lg font-semibold mb-2">Start Building</h3>
-                  <p className="text-muted-foreground mb-4">Add a section or drag components to start</p>
-                  <Button onClick={handleAddSection}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Section
+        <div className="flex-1 space-y-4">
+          {/* Toolbar */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Preview Mode Toggle */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={isPreview ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsPreview(!isPreview)}
+                    className="flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {isPreview ? 'Exit Preview' : 'Preview'}
                   </Button>
                 </div>
+
+                {/* Device Preview */}
+                <div className="flex items-center border rounded-lg">
+                  <Button
+                    variant={previewMode === 'desktop' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('desktop')}
+                    className="rounded-r-none"
+                  >
+                    <Monitor className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={previewMode === 'tablet' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('tablet')}
+                    className="rounded-none"
+                  >
+                    <Tablet className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={previewMode === 'mobile' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setPreviewMode('mobile')}
+                    className="rounded-l-none"
+                  >
+                    <Smartphone className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Grid Settings */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Grid:</Label>
+                  <Select value={gridSize.toString()} onValueChange={(value) => setGridSize(Number(value))}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">12</SelectItem>
+                      <SelectItem value="16">16</SelectItem>
+                      <SelectItem value="24">24</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4 p-4">
-                {layout.map((section) => (
-                  <div key={section.id} className="border rounded-lg bg-muted/20">
-                    <div className="flex items-center justify-between p-3 border-b bg-muted/10">
-                      <span className="font-medium">{section.name}</span>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary">{section.gridCols} cols</Badge>
-                        <Button size="sm" variant="ghost">
-                          <Settings className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <Droppable droppableId={section.id}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                          className={`min-h-32 p-4 transition-colors ${
-                            snapshot.isDraggingOver ? 'bg-primary/5 border-primary/20' : ''
-                          }`}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: previewMode === 'mobile' ? '1fr' : 
-                                               previewMode === 'tablet' ? 'repeat(2, 1fr)' : 
-                                               `repeat(${section.gridCols}, 1fr)`,
-                            gap: '1rem',
-                            ...section.styles
-                          }}
-                        >
-                          {section.components.length === 0 ? (
-                            <div className="col-span-full flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg p-8">
-                              Drop components here or click + to add
-                            </div>
-                          ) : (
-                            section.components.map((component, index) => (
-                              <Draggable key={component.id} draggableId={component.id} index={index}>
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    className={`relative ${
-                                      snapshot.isDragging ? 'opacity-50' : ''
-                                    } ${
-                                      selectedComponent?.id === component.id ? 'ring-2 ring-primary' : ''
-                                    }`}
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (historyIndex > 0) {
+                      setHistoryIndex(historyIndex - 1)
+                      onLayoutUpdate(history[historyIndex - 1])
+                    }
+                  }}
+                  disabled={historyIndex === 0}
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (historyIndex < history.length - 1) {
+                      setHistoryIndex(historyIndex + 1)
+                      onLayoutUpdate(history[historyIndex + 1])
+                    }
+                  }}
+                  disabled={historyIndex === history.length - 1}
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addSection}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Section
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Website Canvas */}
+          <div 
+            className={`mx-auto transition-all duration-300 ${
+              previewMode === 'desktop' ? 'max-w-full' :
+              previewMode === 'tablet' ? 'max-w-3xl' :
+              'max-w-sm'
+            }`}
+          >
+            <div className="bg-background border border-border rounded-lg overflow-hidden shadow-lg">
+              {layout.length === 0 ? (
+                <div className="h-96 flex items-center justify-center bg-muted/20">
+                  <div className="text-center">
+                    <Layout className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Start Building</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Add your first section to begin creating your website
+                    </p>
+                    <Button onClick={addSection}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Section
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-0">
+                  {layout.map((section, sectionIndex) => (
+                    <div key={section.id} className="relative group">
+                      <Droppable droppableId={section.id}>
+                        {(provided, snapshot) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className={`min-h-[100px] transition-all ${
+                              snapshot.isDraggingOver 
+                                ? 'bg-primary/10 border-2 border-primary border-dashed' 
+                                : 'border-transparent border-2'
+                            }`}
+                            style={{
+                              ...section.styles,
+                              backgroundColor: section.styles?.backgroundColor || 'transparent'
+                            }}
+                          >
+                            {!isPreview && (
+                              <div className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Badge variant="secondary" className="text-xs">
+                                  {section.name}
+                                </Badge>
+                              </div>
+                            )}
+                            
+                            {!isPreview && (
+                              <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    const newLayout = layout.filter(s => s.id !== section.id)
+                                    onLayoutUpdate(newLayout)
+                                    toast.success('Section deleted')
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+
+                            {section.components.length === 0 ? (
+                              <div className={`h-24 flex items-center justify-center border-2 border-dashed mx-4 my-4 rounded-lg transition-all ${
+                                snapshot.isDraggingOver 
+                                  ? 'border-primary bg-primary/5 border-solid' 
+                                  : 'border-muted-foreground/25'
+                              }`}>
+                                <p className="text-muted-foreground text-sm">
+                                  {snapshot.isDraggingOver ? 'Drop component here' : 'Drop components here'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div 
+                                className={`grid gap-4 p-4 ${
+                                  section.gridCols === 1 ? 'grid-cols-1' :
+                                  section.gridCols === 2 ? 'grid-cols-1 md:grid-cols-2' :
+                                  section.gridCols === 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
+                                  section.gridCols === 4 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' :
+                                  'grid-cols-1'
+                                }`}
+                              >
+                                {section.components.map((component, index) => (
+                                  <Draggable
+                                    key={component.id}
+                                    draggableId={component.id}
+                                    index={index}
+                                    isDragDisabled={isPreview}
                                   >
-                                    <EnhancedComponentRenderer 
-                                      component={component} 
-                                      isPreview={isPreview}
-                                      isSelected={selectedComponent?.id === component.id}
-                                      onClick={() => handleComponentClick(component)}
-                                      onDoubleClick={() => handleComponentDoubleClick(component)}
-                                    />
-                                    
-                                    {!isPreview && selectedComponent?.id === component.id && (
-                                      <div className="absolute -top-8 right-0 flex gap-1">
-                                        <Button size="sm" variant="secondary" onClick={() => setShowComponentEditor(true)}>
-                                          <Settings className="h-3 w-3" />
-                                        </Button>
-                                        <Button size="sm" variant="secondary" onClick={() => handleDeleteComponent(component.id)}>
-                                          <Trash2 className="h-3 w-3" />
-                                        </Button>
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`transition-all ${
+                                          snapshot.isDragging 
+                                            ? 'shadow-lg rotate-2 scale-105 z-50' 
+                                            : ''
+                                        }`}
+                                      >
+                                        <EnhancedComponentRenderer 
+                                          component={component} 
+                                          isPreview={isPreview}
+                                          isSelected={selectedComponent?.id === component.id}
+                                          onClick={() => handleComponentClick(component)}
+                                          onDoubleClick={() => handleComponentDoubleClick(component)}
+                                        />
                                       </div>
                                     )}
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))
-                          )}
-                          {provided.placeholder}
-                        </div>
-                      )}
-                    </Droppable>
-                  </div>
-                ))}
-              </div>
-            )}
+                                  </Draggable>
+                                ))}
+                              </div>
+                            )}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
-        {/* Component Editor Dialog */}
+        {/* Component Editor Sidebar */}
         {showComponentEditor && selectedComponent && (
-          <Dialog open={showComponentEditor} onOpenChange={setShowComponentEditor}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Edit Component</DialogTitle>
-                <DialogDescription>
-                  Customize the properties of your {selectedComponent.name}
-                </DialogDescription>
-              </DialogHeader>
-              <ComponentEditor
-                component={selectedComponent}
-                onUpdate={handleComponentUpdate}
-                onClose={() => {
-                  setShowComponentEditor(false)
-                  setSelectedComponent(null)
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* Custom Component Builder Dialog */}
-        {showCustomBuilder && (
-          <Dialog open={showCustomBuilder} onOpenChange={setShowCustomBuilder}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
-              <DialogHeader>
-                <DialogTitle>Create Custom Component</DialogTitle>
-                <DialogDescription>
-                  Build your own reusable component
-                </DialogDescription>
-              </DialogHeader>
-              <CustomComponentBuilder
-                onSaveComponent={handleSaveCustomComponent}
-                onLoadComponent={() => {}}
-                existingComponents={customComponents}
-              />
-            </DialogContent>
-          </Dialog>
+          <div className="fixed right-4 top-4 z-50">
+            <ComponentEditor
+              component={selectedComponent}
+              onUpdate={handleComponentUpdate}
+              onClose={() => {
+                setShowComponentEditor(false)
+                setSelectedComponent(null)
+              }}
+            />
+          </div>
         )}
       </div>
     </DragDropContext>
