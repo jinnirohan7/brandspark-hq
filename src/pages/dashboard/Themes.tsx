@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useThemeBuilder } from '@/hooks/useThemeBuilder'
 import { EnhancedThemeLibrary } from '@/components/theme-builder/EnhancedThemeLibrary'
+import ThemeLibraryGrid from '@/components/theme-builder/ThemeLibraryGrid'
+import ThemeCustomizer from '@/components/theme-builder/ThemeCustomizer'
 import { AdvancedDragDropBuilder } from '@/components/theme-builder/AdvancedDragDropBuilder'
 import { ThemePreview } from '@/components/theme-builder/ThemePreview'
 import { MultiFrameworkCodeEditor } from '@/components/theme-builder/MultiFrameworkCodeEditor'
@@ -27,6 +29,7 @@ import {
 const Themes = () => {
   const [activeTab, setActiveTab] = useState('library')
   const [previewTheme, setPreviewTheme] = useState(null)
+  const [customizationSection, setCustomizationSection] = useState('overview')
   
   const {
     themes,
@@ -283,19 +286,30 @@ const Themes = () => {
         </TabsList>
 
         <TabsContent value="library">
-          <EnhancedThemeLibrary
-            themes={themes}
-            categories={categories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            onApplyTheme={applyTheme}
-            onPreviewTheme={handlePreviewTheme}
-            loading={loading}
-            favorites={[]}
-            onToggleFavorite={() => {}}
-          />
+          {customizationSection === 'overview' ? (
+            <ThemeLibraryGrid
+              themes={themes}
+              categories={categories}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onApplyTheme={applyTheme}
+              onCustomizeTheme={(theme) => setCustomizationSection('customize')}
+              loading={loading}
+              favorites={[]}
+              onToggleFavorite={() => {}}
+            />
+          ) : (
+            <ThemeCustomizer
+              theme={{ id: '1', name: 'Stylique', description: 'Professional theme for modern websites' }}
+              onBack={() => setCustomizationSection('overview')}
+              onSave={(settings) => {
+                console.log('Saving settings:', settings)
+                setCustomizationSection('overview')
+              }}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="builder">
