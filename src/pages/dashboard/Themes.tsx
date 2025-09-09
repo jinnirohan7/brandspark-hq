@@ -262,26 +262,14 @@ const Themes = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="library" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
             Library
           </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center gap-2">
-            <Layout className="h-4 w-4" />
-            Builder
-          </TabsTrigger>
-          <TabsTrigger value="custom" className="flex items-center gap-2">
-            <Wand2 className="h-4 w-4" />
-            Custom
-          </TabsTrigger>
           <TabsTrigger value="ai-chat" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             AI Chat
-          </TabsTrigger>
-          <TabsTrigger value="preview" className="flex items-center gap-2">
-            <Eye className="h-4 w-4" />
-            Preview
           </TabsTrigger>
         </TabsList>
 
@@ -312,45 +300,6 @@ const Themes = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="builder">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Drag & Drop Builder</h3>
-                <p className="text-sm text-muted-foreground">Create your website by dragging components</p>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setActiveTab('preview')}
-                className="flex items-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                Preview Builder
-              </Button>
-            </div>
-            <AdvancedDragDropBuilder
-              layout={layoutData}
-              onLayoutUpdate={(layout) => {
-                setLayoutData(layout)
-                generateBuilderHtml(layout)
-              }}
-              currentTheme={currentTheme}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="custom">
-          <CustomComponentBuilder
-            onSaveComponent={(component) => {
-              setCustomComponents(prev => [...prev, component])
-            }}
-            onLoadComponent={(component) => {
-              console.log('Loading custom component:', component.name)
-            }}
-            existingComponents={customComponents}
-          />
-        </TabsContent>
-
         <TabsContent value="ai-chat">
           <AIIntegration
             currentTheme={currentTheme}
@@ -366,19 +315,6 @@ const Themes = () => {
             onGenerateSuggestions={(type) => {
               generateAITheme('general', type)
             }}
-          />
-        </TabsContent>
-
-
-
-        <TabsContent value="preview">
-          <ThemePreview 
-            theme={currentTheme?.theme}
-            customizations={currentTheme?.customizations_json || defaultCustomizations}
-            layout={layoutData}
-            previewHtml={generatedHtml}
-            onApplyTheme={applyTheme}
-            onCustomize={() => setActiveTab('builder')}
           />
         </TabsContent>
       </Tabs>
