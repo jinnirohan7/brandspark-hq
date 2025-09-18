@@ -4,8 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AdminProvider } from "./contexts/AdminContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminRoute } from "./components/AdminRoute";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { AdminLayout } from "./components/admin/AdminLayout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -34,12 +37,19 @@ import Reviews from "./pages/dashboard/Reviews";
 import Documents from "./pages/dashboard/Documents";
 import NotFound from "./pages/NotFound";
 
+// Admin pages
+import { AdminLogin } from "./pages/admin/AdminLogin";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { AdminSellers } from "./pages/admin/AdminSellers";
+import { AdminCreateSeller } from "./pages/admin/AdminCreateSeller";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <AdminProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -76,10 +86,24 @@ const App = () => (
               <Route path="reviews" element={<Reviews />} />
               <Route path="documents" element={<Documents />} />
             </Route>
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }>
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="sellers" element={<AdminSellers />} />
+              <Route path="sellers/create" element={<AdminCreateSeller />} />
+            </Route>
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </AdminProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

@@ -14,6 +14,133 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_sessions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_sessions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_settings: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          setting_key: string
+          setting_value: Json
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          setting_key: string
+          setting_value: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          permissions: Json | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          permissions?: Json | null
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          permissions?: Json | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_suggestions: {
         Row: {
           after: string | null
@@ -141,6 +268,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      courier_partners: {
+        Row: {
+          api_endpoint: string | null
+          api_key_encrypted: string | null
+          contract_details: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          performance_metrics: Json | null
+          pricing_config: Json | null
+          supported_regions: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          api_key_encrypted?: string | null
+          contract_details?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          performance_metrics?: Json | null
+          pricing_config?: Json | null
+          supported_regions?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          api_key_encrypted?: string | null
+          contract_details?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          performance_metrics?: Json | null
+          pricing_config?: Json | null
+          supported_regions?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       customers: {
         Row: {
@@ -852,6 +1021,81 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_payouts: {
+        Row: {
+          amount: number
+          bank_details: Json | null
+          created_at: string | null
+          currency: string | null
+          fees: number | null
+          id: string
+          notes: string | null
+          payout_date: string
+          period_end: string
+          period_start: string
+          processed_at: string | null
+          processed_by: string | null
+          seller_id: string
+          status: string | null
+          tax_deducted: number | null
+          transaction_reference: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          bank_details?: Json | null
+          created_at?: string | null
+          currency?: string | null
+          fees?: number | null
+          id?: string
+          notes?: string | null
+          payout_date: string
+          period_end: string
+          period_start: string
+          processed_at?: string | null
+          processed_by?: string | null
+          seller_id: string
+          status?: string | null
+          tax_deducted?: number | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          bank_details?: Json | null
+          created_at?: string | null
+          currency?: string | null
+          fees?: number | null
+          id?: string
+          notes?: string | null
+          payout_date?: string
+          period_end?: string
+          period_start?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          seller_id?: string
+          status?: string | null
+          tax_deducted?: number | null
+          transaction_reference?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_payouts_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_payouts_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_subscriptions: {
         Row: {
           auto_renew: boolean | null
@@ -1544,9 +1788,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_admin_permissions: {
+        Args: { _user_id: string }
+        Returns: Json
+      }
       increment_downloads: {
         Args: { theme_id: string }
         Returns: undefined
+      }
+      is_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
