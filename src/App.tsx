@@ -40,8 +40,14 @@ import NotFound from "./pages/NotFound";
 // Admin pages
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
 import { AdminSellers } from "./pages/admin/AdminSellers";
 import { AdminCreateSeller } from "./pages/admin/AdminCreateSeller";
+import { AdminVerification } from "./pages/admin/AdminVerification";
+import { AdminOrders } from "./pages/admin/AdminOrders";
+import { AdminPayouts } from "./pages/admin/AdminPayouts";
+import { AdminDelivery } from "./pages/admin/AdminDelivery";
+import { AdminSettings } from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -95,8 +101,14 @@ const App = () => (
               </AdminRoute>
             }>
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="sellers" element={<AdminSellers />} />
               <Route path="sellers/create" element={<AdminCreateSeller />} />
+              <Route path="verification" element={<AdminVerification />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="payouts" element={<AdminPayouts />} />
+              <Route path="delivery" element={<AdminDelivery />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
