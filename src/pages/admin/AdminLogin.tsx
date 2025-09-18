@@ -45,56 +45,77 @@ export const AdminLogin = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Shield className="h-12 w-12 text-primary" />
-          </div>
-          <CardTitle className="text-2xl">SellSphere Admin</CardTitle>
-          <CardDescription>
-            Super Admin Panel Access
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Admin Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@sellsphere.com"
-                required
-              />
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary-glow/5 p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-large border-0 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-4 pb-8">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-full bg-gradient-primary shadow-glow">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
+              <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                SellSphere Admin
+              </CardTitle>
+              <CardDescription className="text-base text-muted-foreground">
+                Super Admin Panel Access
+              </CardDescription>
             </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">Admin Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@sellsphere.com"
+                    className="h-12 text-base"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="h-12 text-base"
+                    required
+                  />
+                </div>
+              </div>
+              
+              {error && (
+                <Alert variant="destructive" className="border-destructive/20 bg-destructive/5">
+                  <AlertDescription className="text-sm">{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold bg-gradient-primary hover:opacity-90 transition-all duration-200 shadow-medium hover:shadow-large"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Signing in...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
