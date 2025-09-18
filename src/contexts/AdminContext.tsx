@@ -76,10 +76,19 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const checkAdminStatus = async (userId: string) => {
     try {
+      // First get the user's email
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData.user) {
+        setAdminUser(null)
+        setIsAdmin(false)
+        return
+      }
+
+      // Check admin status by user_id or email
       const { data: adminData, error } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('user_id', userId)
+        .or(`user_id.eq.${userId},email.eq.${userData.user.email}`)
         .eq('is_active', true)
         .single()
 
@@ -87,10 +96,15 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setAdminUser(adminData)
         setIsAdmin(true)
         
-        // Update last login
+        // Update user_id if not set and update last login
+        const updates: any = { last_login: new Date().toISOString() }
+        if (!adminData.user_id) {
+          updates.user_id = userId
+        }
+        
         await supabase
           .from('admin_users')
-          .update({ last_login: new Date().toISOString() })
+          .update(updates)
           .eq('id', adminData.id)
       } else {
         setAdminUser(null)
