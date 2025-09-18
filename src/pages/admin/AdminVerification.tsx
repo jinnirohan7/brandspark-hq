@@ -224,7 +224,6 @@ export const AdminVerification = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={seller?.profile_image_url} />
                               <AvatarFallback>{seller?.full_name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -289,7 +288,6 @@ export const AdminVerification = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={seller.profile_image_url} />
                             <AvatarFallback>{seller.full_name[0]}</AvatarFallback>
                           </Avatar>
                           <div>
@@ -350,7 +348,6 @@ export const AdminVerification = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={seller?.profile_image_url} />
                               <AvatarFallback>{seller?.full_name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
@@ -403,7 +400,6 @@ export const AdminVerification = () => {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={seller?.profile_image_url} />
                               <AvatarFallback>{seller?.full_name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>

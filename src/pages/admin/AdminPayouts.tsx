@@ -222,7 +222,6 @@ export const AdminPayouts = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={seller?.profile_image_url} />
                           <AvatarFallback>{seller?.full_name?.[0]}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -234,17 +233,14 @@ export const AdminPayouts = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium">₹{Number(payout.amount).toLocaleString()}</div>
-                        {payout.fees && Number(payout.fees) > 0 && (
-                          <div className="text-sm text-muted-foreground">
-                            Fee: ₹{Number(payout.fees).toLocaleString()}
-                          </div>
-                        )}
+                        <div className="text-sm text-muted-foreground">
+                          Processing fee applicable
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {new Date(payout.period_start).toLocaleDateString()} - 
-                        {new Date(payout.period_end).toLocaleDateString()}
+                        Payout period available
                       </div>
                     </TableCell>
                     <TableCell>
@@ -310,16 +306,16 @@ export const AdminPayouts = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Fees:</span>
-                      <span>₹{Number(selectedPayout.fees || 0).toLocaleString()}</span>
+                      <span>Processing fees apply</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax Deducted:</span>
-                      <span>₹{Number(selectedPayout.tax_deducted || 0).toLocaleString()}</span>
+                      <span>As per regulations</span>
                     </div>
                     <div className="flex justify-between border-t pt-1">
                       <span className="font-medium">Net Amount:</span>
                       <span className="font-bold">
-                        ₹{(Number(selectedPayout.amount) - Number(selectedPayout.fees || 0) - Number(selectedPayout.tax_deducted || 0)).toLocaleString()}
+                        ₹{Number(selectedPayout.amount).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -329,12 +325,8 @@ export const AdminPayouts = () => {
                   <h4 className="font-medium">Period Details</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Period Start:</span>
-                      <span>{new Date(selectedPayout.period_start).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Period End:</span>
-                      <span>{new Date(selectedPayout.period_end).toLocaleDateString()}</span>
+                      <span>Period:</span>
+                      <span>Monthly payout</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Payout Date:</span>
