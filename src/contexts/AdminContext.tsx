@@ -44,15 +44,17 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    // Listen for auth changes
+    // Listen for auth changes (sync only; defer Supabase calls)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      
+
       if (session?.user) {
-        await checkAdminStatus(session.user.id)
+        setTimeout(() => {
+          checkAdminStatus(session.user!.id)
+        }, 0)
       } else {
         setAdminUser(null)
         setIsAdmin(false)
@@ -61,12 +63,12 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     })
 
     // Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
-      
+
       if (session?.user) {
-        await checkAdminStatus(session.user.id)
+        checkAdminStatus(session.user.id)
       }
       setLoading(false)
     })
@@ -118,11 +120,33 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    return { error }
+    if (error) return { error }
+
+    const userId = data.user?.id ?? data.session?.user?.id
+    if (!userId) {
+      return { error: { message: 'Login failed. Please try again.' } as any }
+    }
+
+    // Verify admin access explicitly
+    const { data: isAdminRes, error: adminErr } = await supabase.rpc('is_admin', { _user_id: userId })
+    if (adminErr) {
+      return { error: adminErr }
+    }
+    if (!isAdminRes) {
+      await supabase.auth.signOut()
+      return { error: { message: 'You do not have admin access.' } as any }
+    }
+
+    // Trigger admin status check (non-blocking)
+    setTimeout(() => {
+      checkAdminStatus(userId)
+    }, 0)
+
+    return { error: null as any }
   }
 
   const signOut = async () => {
