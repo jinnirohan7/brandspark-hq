@@ -48,6 +48,8 @@ import { AdminOrders } from "./pages/admin/AdminOrders";
 import { AdminPayouts } from "./pages/admin/AdminPayouts";
 import { AdminDelivery } from "./pages/admin/AdminDelivery";
 import { AdminSettings } from "./pages/admin/AdminSettings";
+import { AdminSecurity } from "./pages/admin/AdminSecurity";
+import { AdminDomains } from "./pages/admin/AdminDomains";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +111,8 @@ const App = () => (
               <Route path="payouts" element={<AdminPayouts />} />
               <Route path="delivery" element={<AdminDelivery />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="security" element={<AdminSecurity />} />
+              <Route path="domains" element={<AdminDomains />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
