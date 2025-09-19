@@ -1,37 +1,73 @@
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useState } from 'react'
 import { useAdminData } from '@/hooks/useAdminData'
-import { BarChart3, TrendingUp, Users, ShoppingCart, DollarSign, Activity, Download, Filter } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  ScatterChart,
+  Scatter
+} from 'recharts'
+import { 
+  TrendingUp, 
+  Download, 
+  Filter, 
+  Calendar,
+  DollarSign,
+  Users,
+  ShoppingCart,
+  Globe,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Activity
+} from 'lucide-react'
 
-const mockAnalyticsData = {
-  revenue: [
-    { month: 'Jan', value: 125000 },
-    { month: 'Feb', value: 132000 },
-    { month: 'Mar', value: 147000 },
-    { month: 'Apr', value: 158000 },
-    { month: 'May', value: 175000 },
-    { month: 'Jun', value: 189000 },
-  ],
-  orders: [
-    { month: 'Jan', orders: 1250 },
-    { month: 'Feb', orders: 1420 },
-    { month: 'Mar', orders: 1380 },
-    { month: 'Apr', orders: 1650 },
-    { month: 'May', orders: 1890 },
-    { month: 'Jun', orders: 2100 },
-  ],
-  categories: [
-    { name: 'Electronics', value: 35, color: '#8884d8' },
-    { name: 'Fashion', value: 28, color: '#82ca9d' },
-    { name: 'Home & Garden', value: 20, color: '#ffc658' },
-    { name: 'Books', value: 10, color: '#ff7300' },
-    { name: 'Sports', value: 7, color: '#00ff88' },
+export const AdminAnalytics = () => {
+  const { fetchSellers, fetchOrders, fetchPayouts, sellers, orders, payouts, loading } = useAdminData()
+  
+  const [dateRange, setDateRange] = useState('30d')
+
+  useEffect(() => {
+    const loadData = async () => {
+      await Promise.all([
+        fetchSellers(),
+        fetchOrders(),
+        fetchPayouts(),
+      ])
+    }
+    loadData()
+  }, [])
+
+  // Advanced analytics data
+  const revenueAnalytics = [
+    { date: '2024-01', revenue: 125000, orders: 340, sellers: 45 },
+    { date: '2024-02', revenue: 142000, orders: 385, sellers: 52 },
+    { date: '2024-03', revenue: 158000, orders: 420, sellers: 58 },
+    { date: '2024-04', revenue: 175000, orders: 465, sellers: 63 },
+    { date: '2024-05', revenue: 192000, orders: 510, sellers: 68 },
+    { date: '2024-06', revenue: 215000, orders: 575, sellers: 74 },
   ]
-}
+
+  const performanceMetrics = [
+    { metric: 'Conversion Rate', value: 3.2, change: 0.4, unit: '%', positive: true },
+    { metric: 'Avg Order Value', value: 1250, change: 85, unit: '₹', positive: true },
+    { metric: 'Customer Retention', value: 67.8, change: -2.1, unit: '%', positive: false },
+    { metric: 'Platform Commission', value: 8.5, change: 0.2, unit: '%', positive: true },
+  ]
 
 export const AdminAnalytics = () => {
   const { sellers, orders, payouts, loading } = useAdminData()
