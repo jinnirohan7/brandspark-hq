@@ -22,6 +22,7 @@ import {
   UserCheck,
   Globe,
   Lock,
+  Palette,
 } from 'lucide-react'
 
 const adminMenuItems = [
@@ -38,6 +39,7 @@ const adminMenuItems = [
       { title: 'All Sellers', url: '/admin/sellers', icon: Users },
       { title: 'Create Seller', url: '/admin/sellers/create', icon: Plus },
       { title: 'Verification', url: '/admin/verification', icon: UserCheck },
+      { title: 'Monitoring', url: '/admin/monitoring', icon: Activity },
     ],
   },
   {
@@ -51,6 +53,7 @@ const adminMenuItems = [
   {
     title: 'Platform',
     items: [
+      { title: 'Themes', url: '/admin/themes', icon: Palette },
       { title: 'Settings', url: '/admin/settings', icon: Settings },
       { title: 'Security', url: '/admin/security', icon: Lock },
       { title: 'Domains', url: '/admin/domains', icon: Globe },
