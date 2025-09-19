@@ -53,7 +53,6 @@ const adminMenuItems = [
   {
     title: 'Platform',
     items: [
-      { title: 'Templates', url: '/admin/templates', icon: Palette },
       { title: 'Themes', url: '/admin/themes', icon: Palette },
       { title: 'Settings', url: '/admin/settings', icon: Settings },
       { title: 'Security', url: '/admin/security', icon: Lock },

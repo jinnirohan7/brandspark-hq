@@ -14,57 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_logs: {
-        Row: {
-          action: string
-          details: Json | null
-          id: string
-          ip_address: unknown | null
-          seller_id: string | null
-          seller_theme_id: string | null
-          template_id: string | null
-          timestamp: string | null
-          user_agent: string | null
-        }
-        Insert: {
-          action: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          seller_id?: string | null
-          seller_theme_id?: string | null
-          template_id?: string | null
-          timestamp?: string | null
-          user_agent?: string | null
-        }
-        Update: {
-          action?: string
-          details?: Json | null
-          id?: string
-          ip_address?: unknown | null
-          seller_id?: string | null
-          seller_theme_id?: string | null
-          template_id?: string | null
-          timestamp?: string | null
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_logs_seller_theme_id_fkey"
-            columns: ["seller_theme_id"]
-            isOneToOne: false
-            referencedRelation: "seller_themes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_logs_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       admin_sessions: {
         Row: {
           action_type: string
@@ -405,103 +354,6 @@ export type Database = {
             columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "sellers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      domains: {
-        Row: {
-          created_at: string | null
-          dns_provider: string | null
-          dns_records: Json | null
-          domain_name: string
-          domain_type: string | null
-          id: string
-          seller_id: string | null
-          seller_theme_id: string | null
-          ssl_status: string | null
-          updated_at: string | null
-          verification_status: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          dns_provider?: string | null
-          dns_records?: Json | null
-          domain_name: string
-          domain_type?: string | null
-          id?: string
-          seller_id?: string | null
-          seller_theme_id?: string | null
-          ssl_status?: string | null
-          updated_at?: string | null
-          verification_status?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          dns_provider?: string | null
-          dns_records?: Json | null
-          domain_name?: string
-          domain_type?: string | null
-          id?: string
-          seller_id?: string | null
-          seller_theme_id?: string | null
-          ssl_status?: string | null
-          updated_at?: string | null
-          verification_status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "domains_seller_theme_id_fkey"
-            columns: ["seller_theme_id"]
-            isOneToOne: false
-            referencedRelation: "seller_themes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      hosting_metrics: {
-        Row: {
-          bandwidth_gb: number | null
-          cpu_usage: number | null
-          created_at: string | null
-          date: string
-          id: string
-          memory_usage: number | null
-          page_views: number | null
-          seller_theme_id: string | null
-          unique_visitors: number | null
-          uptime_percentage: number | null
-        }
-        Insert: {
-          bandwidth_gb?: number | null
-          cpu_usage?: number | null
-          created_at?: string | null
-          date: string
-          id?: string
-          memory_usage?: number | null
-          page_views?: number | null
-          seller_theme_id?: string | null
-          unique_visitors?: number | null
-          uptime_percentage?: number | null
-        }
-        Update: {
-          bandwidth_gb?: number | null
-          cpu_usage?: number | null
-          created_at?: string | null
-          date?: string
-          id?: string
-          memory_usage?: number | null
-          page_views?: number | null
-          seller_theme_id?: string | null
-          unique_visitors?: number | null
-          uptime_percentage?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "hosting_metrics_seller_theme_id_fkey"
-            columns: ["seller_theme_id"]
-            isOneToOne: false
-            referencedRelation: "seller_themes"
             referencedColumns: ["id"]
           },
         ]
@@ -1291,65 +1143,6 @@ export type Database = {
           },
         ]
       }
-      seller_themes: {
-        Row: {
-          created_at: string | null
-          custom_domain: string | null
-          customizations: Json | null
-          hosting_config: Json | null
-          id: string
-          last_published: string | null
-          seller_id: string | null
-          ssl_enabled: boolean | null
-          status: string | null
-          subdomain: string | null
-          template_id: string | null
-          theme_name: string
-          updated_at: string | null
-          version: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          custom_domain?: string | null
-          customizations?: Json | null
-          hosting_config?: Json | null
-          id?: string
-          last_published?: string | null
-          seller_id?: string | null
-          ssl_enabled?: boolean | null
-          status?: string | null
-          subdomain?: string | null
-          template_id?: string | null
-          theme_name: string
-          updated_at?: string | null
-          version?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          custom_domain?: string | null
-          customizations?: Json | null
-          hosting_config?: Json | null
-          id?: string
-          last_published?: string | null
-          seller_id?: string | null
-          ssl_enabled?: boolean | null
-          status?: string | null
-          subdomain?: string | null
-          template_id?: string | null
-          theme_name?: string
-          updated_at?: string | null
-          version?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "seller_themes_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       sellers: {
         Row: {
           account_status: string | null
@@ -1527,108 +1320,11 @@ export type Database = {
         }
         Relationships: []
       }
-      template_ratings: {
-        Row: {
-          created_at: string | null
-          id: string
-          rating: number | null
-          review: string | null
-          seller_id: string | null
-          template_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          rating?: number | null
-          review?: string | null
-          seller_id?: string | null
-          template_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          rating?: number | null
-          review?: string | null
-          seller_id?: string | null
-          template_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "template_ratings_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      templates: {
-        Row: {
-          category: string | null
-          description: string | null
-          downloads: number | null
-          file_path: string | null
-          id: string
-          is_premium: boolean | null
-          name: string
-          preview_url: string | null
-          price: number | null
-          rating: number | null
-          stack: string | null
-          status: string | null
-          tags: string[] | null
-          updated_at: string | null
-          upload_date: string | null
-          version: string | null
-        }
-        Insert: {
-          category?: string | null
-          description?: string | null
-          downloads?: number | null
-          file_path?: string | null
-          id?: string
-          is_premium?: boolean | null
-          name: string
-          preview_url?: string | null
-          price?: number | null
-          rating?: number | null
-          stack?: string | null
-          status?: string | null
-          tags?: string[] | null
-          updated_at?: string | null
-          upload_date?: string | null
-          version?: string | null
-        }
-        Update: {
-          category?: string | null
-          description?: string | null
-          downloads?: number | null
-          file_path?: string | null
-          id?: string
-          is_premium?: boolean | null
-          name?: string
-          preview_url?: string | null
-          price?: number | null
-          rating?: number | null
-          stack?: string | null
-          status?: string | null
-          tags?: string[] | null
-          updated_at?: string | null
-          upload_date?: string | null
-          version?: string | null
-        }
-        Relationships: []
-      }
       theme_versions: {
         Row: {
           created_at: string
           customizations_json: Json
           id: string
-          published_at: string | null
-          seller_theme_id: string | null
           user_theme_id: string
           version_number: number
         }
@@ -1636,8 +1332,6 @@ export type Database = {
           created_at?: string
           customizations_json?: Json
           id?: string
-          published_at?: string | null
-          seller_theme_id?: string | null
           user_theme_id: string
           version_number?: number
         }
@@ -1645,19 +1339,10 @@ export type Database = {
           created_at?: string
           customizations_json?: Json
           id?: string
-          published_at?: string | null
-          seller_theme_id?: string | null
           user_theme_id?: string
           version_number?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "theme_versions_seller_theme_id_fkey"
-            columns: ["seller_theme_id"]
-            isOneToOne: false
-            referencedRelation: "seller_themes"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "theme_versions_user_theme_id_fkey"
             columns: ["user_theme_id"]

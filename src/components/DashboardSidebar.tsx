@@ -44,7 +44,6 @@ const menuItems = [
       { title: 'Inventory', url: '/dashboard/inventory', icon: Package },
       { title: 'Listings', url: '/dashboard/listings', icon: Package },
       
-      { title: 'Website Builder', url: '/dashboard/website', icon: Globe },
       { title: 'Theme Builder', url: '/dashboard/themes', icon: Palette },
     ],
   },

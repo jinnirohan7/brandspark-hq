@@ -51,9 +51,7 @@ import { AdminSettings } from "./pages/admin/AdminSettings";
 import { AdminSecurity } from "./pages/admin/AdminSecurity";
 import { AdminDomains } from "./pages/admin/AdminDomains";
 import AdminThemes from "./pages/admin/AdminThemes";
-import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminSellerMonitoring from "./pages/admin/AdminSellerMonitoring";
-import Website from "./pages/dashboard/Website";
 
 const queryClient = new QueryClient();
 
@@ -97,7 +95,6 @@ const App = () => (
               <Route path="support" element={<Support />} />
               <Route path="reviews" element={<Reviews />} />
               <Route path="documents" element={<Documents />} />
-              <Route path="website" element={<Website />} />
             </Route>
             
             {/* Admin Routes */}
@@ -116,7 +113,6 @@ const App = () => (
               <Route path="orders" element={<AdminOrders />} />
               <Route path="payouts" element={<AdminPayouts />} />
               <Route path="delivery" element={<AdminDelivery />} />
-              <Route path="templates" element={<AdminTemplates />} />
               <Route path="themes" element={<AdminThemes />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="security" element={<AdminSecurity />} />
