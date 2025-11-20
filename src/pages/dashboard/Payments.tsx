@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DollarSign, TrendingUp, Clock, AlertTriangle, Download, Filter } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { DollarSign, TrendingUp, Clock, AlertTriangle, Download, Filter, Plus, CreditCard, RefreshCw } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from '@/hooks/use-toast'
@@ -20,6 +22,11 @@ interface Payment {
   transaction_id: string | null
   processed_at: string | null
   created_at: string
+  order_id?: string | null
+}
+
+interface RazorpayWindow extends Window {
+  Razorpay: any
 }
 
 export default function Payments() {
@@ -28,10 +35,25 @@ export default function Payments() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [sellerId, setSellerId] = useState<string>('')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
+  const [createAmount, setCreateAmount] = useState('')
+  const [refundAmount, setRefundAmount] = useState('')
+  const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
     fetchPayments()
+    loadRazorpayScript()
   }, [])
+
+  const loadRazorpayScript = () => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    document.body.appendChild(script)
+  }
 
   const fetchPayments = async () => {
     try {
@@ -45,6 +67,8 @@ export default function Payments() {
         .single()
 
       if (!seller) return
+
+      setSellerId(seller.id)
 
       const { data, error } = await supabase
         .from('payments')
@@ -87,6 +111,153 @@ export default function Payments() {
     return colors[type as keyof typeof colors] || 'text-gray-600'
   }
 
+  const createRazorpayOrder = async () => {
+    if (!createAmount || parseFloat(createAmount) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setProcessing(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('razorpay-create-order', {
+        body: {
+          amount: parseFloat(createAmount),
+          currency: 'INR',
+          notes: {
+            seller_id: sellerId
+          }
+        }
+      })
+
+      if (error) throw error
+
+      const { order, keyId } = data
+
+      // Initialize Razorpay checkout
+      const options = {
+        key: keyId,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Payment Gateway',
+        description: 'Test Payment',
+        order_id: order.id,
+        handler: async function (response: any) {
+          await verifyPayment(response)
+        },
+        prefill: {
+          email: user?.email
+        },
+        theme: {
+          color: '#3399cc'
+        }
+      }
+
+      const razorpay = new (window as any).Razorpay(options)
+      razorpay.open()
+
+      setIsCreateDialogOpen(false)
+      setCreateAmount('')
+    } catch (error: any) {
+      console.error('Error creating order:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create payment order",
+        variant: "destructive",
+      })
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const verifyPayment = async (response: any) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('razorpay-verify-payment', {
+        body: {
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+          seller_id: sellerId,
+          amount: parseFloat(createAmount)
+        }
+      })
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Payment completed successfully",
+      })
+
+      await fetchPayments()
+    } catch (error: any) {
+      console.error('Error verifying payment:', error)
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Payment verification failed",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const initiateRefund = async () => {
+    if (!selectedPayment || !refundAmount || parseFloat(refundAmount) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid refund amount",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (parseFloat(refundAmount) > Math.abs(selectedPayment.amount)) {
+      toast({
+        title: "Invalid Amount",
+        description: "Refund amount cannot exceed payment amount",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setProcessing(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('razorpay-refund', {
+        body: {
+          payment_id: selectedPayment.transaction_id,
+          amount: parseFloat(refundAmount),
+          seller_id: sellerId,
+          notes: {
+            refund_for: selectedPayment.id
+          }
+        }
+      })
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Refund processed successfully",
+      })
+
+      setIsRefundDialogOpen(false)
+      setSelectedPayment(null)
+      setRefundAmount('')
+      await fetchPayments()
+    } catch (error: any) {
+      console.error('Error processing refund:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process refund",
+        variant: "destructive",
+      })
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = payment.transaction_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment.gateway?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -97,6 +268,7 @@ export default function Payments() {
   const totalAmount = payments.reduce((sum, payment) => sum + payment.amount, 0)
   const completedAmount = payments.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0)
   const pendingAmount = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0)
+  const razorpayPayments = payments.filter(p => p.gateway === 'razorpay').length
 
   if (loading) {
     return (
@@ -119,16 +291,49 @@ export default function Payments() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Payments</h1>
-          <p className="text-muted-foreground">Manage your payments, payouts, and transactions</p>
+          <p className="text-muted-foreground">Manage Razorpay payments and transactions</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+          <Button onClick={fetchPayments} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
           </Button>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Payment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Razorpay Payment</DialogTitle>
+                <DialogDescription>
+                  Create a new payment order with Razorpay
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (₹)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder="Enter amount"
+                    value={createAmount}
+                    onChange={(e) => setCreateAmount(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={createRazorpayOrder} disabled={processing}>
+                  {processing ? 'Processing...' : 'Create & Pay'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -228,6 +433,7 @@ export default function Payments() {
                       <TableHead>Gateway</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -236,16 +442,76 @@ export default function Payments() {
                         <TableCell className="font-medium">
                           {payment.transaction_id || payment.id.slice(0, 8)}
                         </TableCell>
-                        <TableCell>
-                          <span className={`capitalize ${getTypeColor(payment.type)}`}>
-                            {payment.type}
-                          </span>
+                        <TableCell className={getTypeColor(payment.type)}>
+                          {payment.type.charAt(0).toUpperCase() + payment.type.slice(1)}
                         </TableCell>
-                        <TableCell>₹{payment.amount.toLocaleString()}</TableCell>
-                        <TableCell>{payment.gateway || 'N/A'}</TableCell>
+                        <TableCell>₹{Math.abs(payment.amount).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={payment.gateway === 'razorpay' ? 'default' : 'secondary'}>
+                            {payment.gateway || 'N/A'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{getStatusBadge(payment.status)}</TableCell>
                         <TableCell>
                           {new Date(payment.created_at).toLocaleDateString('en-IN')}
+                        </TableCell>
+                        <TableCell>
+                          {payment.gateway === 'razorpay' && payment.type === 'sale' && payment.status === 'completed' && (
+                            <Dialog open={isRefundDialogOpen && selectedPayment?.id === payment.id} onOpenChange={(open) => {
+                              if (!open) {
+                                setIsRefundDialogOpen(false)
+                                setSelectedPayment(null)
+                                setRefundAmount('')
+                              }
+                            }}>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPayment(payment)
+                                    setIsRefundDialogOpen(true)
+                                    setRefundAmount(Math.abs(payment.amount).toString())
+                                  }}
+                                >
+                                  Refund
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Process Refund</DialogTitle>
+                                  <DialogDescription>
+                                    Refund payment via Razorpay
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-4">
+                                  <div className="space-y-2">
+                                    <Label>Payment ID</Label>
+                                    <Input value={payment.transaction_id || ''} disabled />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Original Amount</Label>
+                                    <Input value={`₹${Math.abs(payment.amount).toFixed(2)}`} disabled />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label htmlFor="refund-amount">Refund Amount (₹)</Label>
+                                    <Input
+                                      id="refund-amount"
+                                      type="number"
+                                      placeholder="Enter refund amount"
+                                      value={refundAmount}
+                                      onChange={(e) => setRefundAmount(e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button onClick={initiateRefund} disabled={processing} variant="destructive">
+                                    {processing ? 'Processing...' : 'Process Refund'}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
